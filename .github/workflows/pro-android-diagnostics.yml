@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: localsend-pro-android-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: "3.41.9"
@@ -61,7 +61,7 @@ jobs:
 
   android-arm64-debug:
     name: Android ARM64 diagnostic APK (not final)
-    needs: pro-unit
+    needs: [pro-unit, pro-rust]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6

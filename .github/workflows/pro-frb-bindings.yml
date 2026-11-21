@@ -1,4 +1,4 @@
-name: LocalSend Pro Flutter Rust Bridge bindings
+name: LocalSend Pro Flutter Rust Bridge and native lease bindings
 
 on:
   push:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   generate:
-    name: Generate and publish pinned Pro FRB bindings
+    name: Generate and publish pinned Pro and file lease FRB bindings
     runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
