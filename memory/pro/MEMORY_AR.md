@@ -93,3 +93,7 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 - [x] `da0b601f`: `ProReceiverSessionGate` محلي فقط: يربط verified TLS peer certificate fingerprint مع session ID + file ID + expected complete SHA256 وper-file secret token hashed in memory؛ يرفض طلبات غير مفوضة ولا يعطي offset أو ACK. 6 Flutter tests جديدة **نتيجتها بعد غير مؤكدة**.
 - [x] `75eff160`: independent `.github/workflows/pro-fast-tests.yml` يفصل الاختبارات السريعة عن انتظار APK؛ CI Run `44954233385` قيد الفحص، ومنفصل عن build القديم.
 - [ ] لم يُنشأ endpoint شبكي لاستعلام offset، ولا نقل chunks، ولا fsync Android power-loss real phone test، ولا نشر ملف نهائي ذري، ولا إكمال hotspot/band selection. Flags تبقى false.
+
+### تدقيق نجاح فحوص الاستئناف المحلي (2026-11-22)
+- ✅ **Run 44954233385 SUCCESS** (source `75eff160` contains code `da0b601f`): Dart analyze `No issues found!`، **50/50 Flutter tests PASS** (تشمل 6 اختبارات auth gate)، و**94 Rust PASS** (4 native lease/fsync + 82 core + 8 TLS).
+- Latest Android diagnostic Run `44954233387` كان pending؛ المصدر `75eff160` يضم Android directory fsync والتصريح المحلي بالإزاحة. لا تدّعِ APK بهذه الميزات قبل نجاح run أو artifact.

@@ -126,3 +126,6 @@
 - [x] Confirm prior native-lock Android debug APK artifact 14726702057 (Run 44952326531, e.g. no directory fsync).
 - [~] Fast tests run 44954233385 + latest ARM64 queued 44954233387. Check conclusions, fix failures, then checkpoint.
 - [ ] Authenticated network status/chunk endpoints, verified durable network receipts, process-death Android tests, atomic final publish, approval-based Wi-Fi direct route / native socket binding.
+
+- [x] Quick CI Run 44954233385: 50 Flutter tests pass + analyzer 0 issues; 94 Rust tests pass (4+82+8). أُثبتت اختبارات الـreceiver auth gate الستة.
+- [~] Newest ARM64 APK Run 44954233387 queued؛ احتفظ بالفرع بلا كود pushes متلاحقة كي لا يُستبدل pending run في concurrency group.
