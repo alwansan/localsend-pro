@@ -27,3 +27,6 @@ Flutter 3.41.9 / Rust core / LocalSend 1.18.2. عميل Rust الحالي HTTP/1
 https://github.com/localsend/localsend
 https://github.com/svenstaro/miniserve
 https://play.google.com/store/apps/details?id=com.sharekaro.app
+
+## سجل تنفيذ المرحلة التأسيسية — 2026-11-21
+في feature/android-pro-fast-transfer: تمت إضافة التخزين المستقل لإعدادات النقل/الهوتسبوت/5GHz + لوحتين بالواجهة، planner مستقل مع اختبارات 2.4/5/LAN/legacy، مراقب هبوط سرعة مع اختبارات، كشف Android WiFi في Kotlin وDart، واستدعاءات بدء/إيقاف LocalOnlyHotspot مع طلب صلاحيات. Workflow Android ARM64 تشخيصي على push. غير منفذ بعد: التفاوض بين الطرفين، اتصال جهاز المستقبل بالهوتسبوت، اختيار النطاق الفعلي، استئناف upload مع offset، إصلاح تلقائي لشبكة متدهورة، اختبار جهازين، إثبات نجاح بناء APK. لا تدعي اكتمال أي منها.
