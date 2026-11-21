@@ -77,6 +77,53 @@ void main() {
     expect(plan.preferredBand, ProRadioBand.ghz5);
   });
 
+  test('existing 2.4 GHz router band is reported accurately', () {
+    final plan = chooseProTransferPlan(
+      options: const ProTransferOptions(),
+      sender: const ProPeerCapabilities(
+        supportsPro: true,
+        supports5GHzStation: true,
+        supports5GHzHotspot: true,
+        canCreateLocalOnlyHotspot: true,
+        currentWifiBand: ProRadioBand.ghz24,
+      ),
+      receiver: const ProPeerCapabilities(
+        supportsPro: true,
+        supports5GHzStation: false,
+        supports5GHzHotspot: false,
+        canCreateLocalOnlyHotspot: false,
+        currentWifiBand: ProRadioBand.ghz24,
+      ),
+      context: const ProRouteContext(lanReachable: true, lanHealthy: true, hotspotAllowed: true, peerAssociationAvailable: true),
+    );
+    expect(plan.route, ProRoute.existingLan);
+    expect(plan.preferredBand, ProRadioBand.ghz24);
+  });
+
+  test('receiver can host when sender cannot, selecting 2.4 GHz safely', () {
+    final plan = chooseProTransferPlan(
+      options: const ProTransferOptions(),
+      sender: const ProPeerCapabilities(
+        supportsPro: true,
+        supports5GHzStation: false,
+        supports5GHzHotspot: false,
+        canCreateLocalOnlyHotspot: false,
+        currentWifiBand: ProRadioBand.unknown,
+      ),
+      receiver: const ProPeerCapabilities(
+        supportsPro: true,
+        supports5GHzStation: true,
+        supports5GHzHotspot: true,
+        canCreateLocalOnlyHotspot: true,
+        currentWifiBand: ProRadioBand.unknown,
+      ),
+      context: const ProRouteContext(lanReachable: false, lanHealthy: false, hotspotAllowed: true, peerAssociationAvailable: true),
+    );
+    expect(plan.route, ProRoute.localOnlyHotspot);
+    expect(plan.hostIsSender, false);
+    expect(plan.preferredBand, ProRadioBand.ghz24);
+  });
+
   test('legacy peer remains on original transport and no Pro direct link', () {
     final plan = chooseProTransferPlan(
       options: const ProTransferOptions(),
