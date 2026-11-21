@@ -49,3 +49,34 @@ class ProWifiJoin {
     await _channel.invokeMethod<void>('leaveProLocalOnlyWifi');
   }
 }
+
+/// TCP reachability only, never proof of peer identity or file delivery.
+class ProWifiTcpProbeResult {
+  final bool reachable;
+  final Duration elapsed;
+
+  const ProWifiTcpProbeResult({required this.reachable, required this.elapsed});
+
+  factory ProWifiTcpProbeResult.fromMap(Map<String, dynamic> data) {
+    if (data['reachable'] is! bool || data['elapsedMillis'] is! int || (data['elapsedMillis'] as int) < 0) {
+      throw const FormatException('Invalid Android TCP probe response');
+    }
+    return ProWifiTcpProbeResult(
+      reachable: data['reachable'] as bool,
+      elapsed: Duration(milliseconds: data['elapsedMillis'] as int),
+    );
+  }
+}
+class ProWifiJoinDiagnostics {
+  // Keep this a typed, explicit API; never probe a web URL, hostname, or public IP.
+  static Future<ProWifiTcpProbeResult> probePeer({required String ipv4, required int port}) async {
+    if (defaultTargetPlatform != TargetPlatform.android) throw UnsupportedError('Android only');
+    if (port < 1 || port > 65535) throw RangeError.range(port, 1, 65535, 'port');
+    final data = await const MethodChannel('org.localsend.localsend_app/localsend').invokeMapMethod<String, dynamic>(
+      'probeProJoinedWifi',
+      {'ip': ipv4, 'port': port},
+    );
+    if (data == null) throw const FormatException('No probe result');
+    return ProWifiTcpProbeResult.fromMap(data);
+  }
+}

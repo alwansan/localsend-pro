@@ -45,4 +45,21 @@ void main() {
     await ProWifiJoin.leave();
     expect(calls, ['getProWifiJoinStatus', 'leaveProLocalOnlyWifi']);
   });
+  test('probe uses approved network and returns only TCP reachability (not TLS proof)', () async {
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      expect(call.method, 'probeProJoinedWifi');
+      expect((call.arguments as Map)['ip'], '192.168.43.1');
+      expect((call.arguments as Map)['port'], 53317);
+      return <String, dynamic>{'reachable': true, 'elapsedMillis': 47};
+    });
+    final result = await ProWifiJoinDiagnostics.probePeer(ipv4: '192.168.43.1', port: 53317);
+    expect(result.reachable, true);
+    expect(result.elapsed, const Duration(milliseconds: 47));
+  });
+
+  test('probe rejects malformed results and invalid ports', () async {
+    messenger.setMockMethodCallHandler(channel, (_) async => <String, dynamic>{'reachable': 'yes', 'elapsedMillis': 2});
+    await expectLater(ProWifiJoinDiagnostics.probePeer(ipv4: '192.168.43.1', port: 53317), throwsFormatException);
+    await expectLater(ProWifiJoinDiagnostics.probePeer(ipv4: '192.168.43.1', port: 0), throwsRangeError);
+  });
 }

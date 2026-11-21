@@ -99,6 +99,15 @@ class MainActivity : FlutterActivity() {
                 }
                 "joinProLocalOnlyWifi" -> requestProWifiJoin(call, result)
                 "getProWifiJoinStatus" -> result.success(proWifiJoin.status())
+                "probeProJoinedWifi" -> {
+                    val ip = call.argument<String>("ip")
+                    val port = call.argument<Int>("port")
+                    if (ip.isNullOrBlank() || port == null) {
+                        result.error("INVALID_ARGUMENT", "Expected peer IPv4 and port", null)
+                    } else {
+                        proWifiJoin.probeIpv4(ip, port, result)
+                    }
+                }
                 "leaveProLocalOnlyWifi" -> {
                     proWifiJoin.leave()
                     result.success(null)

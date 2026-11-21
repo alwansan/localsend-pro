@@ -12,6 +12,9 @@ import android.os.Handler
 import android.os.Looper
 import io.flutter.plugin.common.MethodChannel
 import java.net.Inet4Address
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import android.os.SystemClock
 
 /**
  * Receiver-side, user-approved association with a Pro local-only hotspot.
@@ -112,6 +115,62 @@ class ProWifiJoin {
             release()
             (outstanding ?: result).error("NETWORK_REQUEST_FAILED", error.message ?: "Could not request local Wi-Fi", null)
         }
+    }
+
+    /**
+     * Non-destructive TCP connectivity probe using ONLY the approved Network.
+     * No process-wide binding and no DNS. This is NOT peer authentication;
+     * the Rust TLS fingerprint must still be verified before any file transfer.
+     * Never call on the main thread to avoid UI freezes.
+     */
+    fun probeIpv4(ip: String, port: Int, result: MethodChannel.Result) {
+        val network = activeNetwork
+        if (network == null) {
+            result.error("NO_NETWORK", "No active approved Pro Wi-Fi network", null)
+            return
+        }
+        if (port !in 1..65535) {
+            result.error("INVALID_PORT", "Port must be between 1 and 65535", null)
+            return
+        }
+        val octets = ip.split(".")
+        if (octets.size != 4 || octets.any { it.isEmpty() || it.length > 3 || it.any { c -> !c.isDigit() } }) {
+            result.error("INVALID_IP", "A numeric IPv4 peer address is required", null)
+            return
+        }
+        val numbers = octets.map { it.toIntOrNull() }
+        if (numbers.any { it == null || it !in 0..255 }) {
+            result.error("INVALID_IP", "Invalid IPv4 peer address", null)
+            return
+        }
+        val address = InetAddress.getByAddress(numbers.map { it!!.toByte() }.toByteArray())
+        if (!address.isSiteLocalAddress && !address.isLinkLocalAddress) {
+            result.error("INVALID_IP", "Only local private/link-local peers are eligible", null)
+            return
+        }
+        Thread({
+            val started = SystemClock.elapsedRealtime()
+            var reachable = false
+            try {
+                network.socketFactory.createSocket().use { socket ->
+                    socket.connect(InetSocketAddress(address, port), 2500)
+                    reachable = true
+                }
+            } catch (_: Exception) {
+                // A failed TCP probe is not permission to restart a transfer.
+            }
+            val millis = (SystemClock.elapsedRealtime() - started).coerceAtLeast(0L)
+            main.post {
+                if (activeNetwork !== network) {
+                    result.error("NETWORK_CHANGED", "The approved Wi-Fi network changed during probe", null)
+                } else {
+                    result.success(mapOf(
+                        "reachable" to reachable,
+                        "elapsedMillis" to millis
+                    ))
+                }
+            }
+        }, "ProWifiTcpProbe").start()
     }
 
     fun status(): Map<String, Any?> {
