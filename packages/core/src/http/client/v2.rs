@@ -4,8 +4,8 @@ use crate::http::dto_v2::{
     InfoResponseDtoV2, PrepareDownloadResponseDtoV2, PrepareUploadRequestDtoV2,
     PrepareUploadResponseDtoV2, PrepareUploadResultV2, RegisterDtoV2, RegisterResponseDtoV2,
 };
-use crate::model::discovery::ProtocolType;
 use crate::http::pro::ProCapabilitiesDto;
+use crate::model::discovery::ProtocolType;
 use futures_util::StreamExt;
 use reqwest::{Response, StatusCode};
 use tokio::io::AsyncWriteExt;

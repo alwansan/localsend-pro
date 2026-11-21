@@ -58,8 +58,14 @@ mod tests {
     #[test]
     fn test_pro_capabilities_url_for_ipv4_and_ipv6() {
         for (host, expected) in [
-            ("192.168.8.1", "https://192.168.8.1:53317/api/localsend/pro/v1/capabilities"),
-            ("::1", "https://[::1]:53317/api/localsend/pro/v1/capabilities"),
+            (
+                "192.168.8.1",
+                "https://192.168.8.1:53317/api/localsend/pro/v1/capabilities",
+            ),
+            (
+                "::1",
+                "https://[::1]:53317/api/localsend/pro/v1/capabilities",
+            ),
         ] {
             let url = TargetUrl {
                 version: ApiVersion::ProV1,
