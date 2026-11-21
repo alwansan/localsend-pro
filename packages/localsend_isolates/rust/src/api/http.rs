@@ -40,7 +40,48 @@ pub fn create_client(
     Ok(RsHttpClient { inner })
 }
 
+/// Safe, redacted view of capabilities negotiated over certificate-pinned HTTPS.
+/// Never includes a Wi-Fi password, SSID, transfer token or peer identifier.
+pub struct RsProCapabilities {
+    pub schema_version: u16,
+    pub pinned_tls_required: bool,
+    pub resumable_upload: bool,
+    pub hotspot_coordination: bool,
+    pub network_bound_upload: bool,
+    pub max_chunk_bytes: u32,
+}
+
+impl From<localsend::http::pro::ProCapabilitiesDto> for RsProCapabilities {
+    fn from(value: localsend::http::pro::ProCapabilitiesDto) -> Self {
+        Self {
+            schema_version: value.schema_version,
+            pinned_tls_required: value.pinned_tls_required,
+            resumable_upload: value.resumable_upload,
+            hotspot_coordination: value.hotspot_coordination,
+            network_bound_upload: value.network_bound_upload,
+            max_chunk_bytes: value.max_chunk_bytes,
+        }
+    }
+}
+
 impl RsHttpClient {
+    /// A read-only, strictly opt-in Pro query. The underlying Rust HTTP
+    /// client refuses requests unless it was created with an expected TLS
+    /// fingerprint and the destination protocol is HTTPS.
+    /// Legacy LocalSend (HTTP 404) returns None.
+    pub async fn pro_capabilities(
+        &self,
+        protocol: ProtocolType,
+        ip: &str,
+        port: u16,
+    ) -> Result<Option<RsProCapabilities>, RsHttpClientError> {
+        self.inner
+            .pro_capabilities(protocol, ip, port)
+            .await
+            .map(|option| option.map(RsProCapabilities::from))
+            .map_err(RsHttpClientError::from)
+    }
+
     pub async fn register(
         &self,
         protocol: ProtocolType,
@@ -276,6 +317,18 @@ pub struct ResultWithPublicKeyRegisterResponseDto {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pro_dto_bridge_does_not_expose_sensitive_network_information() {
+        let source = localsend::http::pro::ProCapabilitiesDto::current();
+        let mapped = RsProCapabilities::from(source);
+        assert_eq!(mapped.schema_version, 1);
+        assert!(mapped.pinned_tls_required);
+        assert!(!mapped.resumable_upload);
+        assert!(!mapped.hotspot_coordination);
+        assert!(!mapped.network_bound_upload);
+        assert_eq!(mapped.max_chunk_bytes, 0);
+    }
 
     #[tokio::test]
     async fn error_does_not_expose_the_pin() {
