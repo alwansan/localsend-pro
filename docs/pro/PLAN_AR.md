@@ -44,3 +44,16 @@
 - https://github.com/localsend/localsend/discussions/3329
 - https://developer.android.com/reference/android/net/wifi/WifiManager
 - https://developer.android.com/reference/android/net/wifi/WifiNetworkSpecifier
+
+## تحديث التنفيذ الأول — 2026-11-21
+- [x] إنشاء الفرع وملفات الذاكرة والاستعادة والتصميم.
+- [x] مفاتيح التفضيل الثلاثة الافتراضية والحفظ وظهورها في واجهتي Android.
+- [x] سياسة اختيار route قابلة للاختبار، لا تؤثر على حركة النقل الحي بعد.
+- [x] كشف إمكانات Wi-Fi المحلية فعلياً عبر Kotlin، مجهولة hotspot band إذا لم يُثبت النظام.
+- [x] MethodChannel لبدء/إيقاف LocalOnlyHotspot مع طلب الأذونات عند الاستخدام، ليس مفعلاً ضمن تدفق الإرسال.
+- [x] مراقب throughput لا يتلف النقل، اختبارات وحدة مكتوبة.
+- [x] إعداد CI تشخيصي ARM64 (لم يُتحقق من تشغيل ناجح).
+- [ ] تفاوض المرسل والمستقبل وربط الشبكة ونقل البيانات عبرها.
+- [ ] آلية chunks/offset/resume + integrity للحالتين.
+- [ ] ربط مراقب الصحة بمسار التعافي الآمن.
+- [ ] Android CI confirmed green ثم جهازين وAPK النهائي.
