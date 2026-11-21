@@ -37,3 +37,10 @@ idle → negotiating → transferring → (degraded) → probing → recovering 
 
 ## الإطلاق
 - P0/P1 لا يعني final: build diagnostic artifacts منفصلة؛ final فقط بعد اكتمال مراحل P2–P7 والاختبارات.
+
+## إضافة تقنية 2026-11-21 — Android receiver association
+- `ProWifiJoin.kt`: بعد إذن NEARBY_WIFI_DEVICES أو ACCESS_FINE_LOCATION حسب إصدار Android، يبني WifiNetworkSpecifier للـSSID وWPA2 passphrase ويتصل عبر ConnectivityManager.requestNetwork مع نافذة النظام. لا يستخدم bindProcessToNetwork؛ NetworkHandle المرسل للـDart لا يعني أن Rust صار يوجّه TCP عبر هذا المسار.
+- `pro_wifi_join.dart`: Future join, isConnected, leave. يُستخدم فقط بعد تفاوض/موافقة موثقة؛ لا تخزن credential ولا تُرسل في رسائل اكتشاف عادية. لا تروّج اكتمال هذه الخطوة على أنها automatic transfer.
+- `ProLocalOnlyHotspot.kt`: generation counter يلغي callbacks غير الحالية ويغلق reservation قديمة بعد الإلغاء. Lifecycle cleanup في MainActivity.onDestroy.
+- متطلب تكامل لاحق: مرّر NetworkHandle إلى طبقة نقل Android/Rust موثوقة، واربط sockets الفردية بدل تغيير default network لكل العملية، ثم اعمل TLS pinning وفحص reachability وthroughput قبل التبديل.
+- GitHub Android diagnostics غير مثبت نجاحه؛ لا تخمّن نتائج CI.

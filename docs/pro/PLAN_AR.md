@@ -57,3 +57,13 @@
 - [ ] آلية chunks/offset/resume + integrity للحالتين.
 - [ ] ربط مراقب الصحة بمسار التعافي الآمن.
 - [ ] Android CI confirmed green ثم جهازين وAPK النهائي.
+
+## تحديث Continue — 2026-11-21 (P1/P3)
+- [x] إضافة Receiver join bridge على Android 10+ بواسطة WifiNetworkSpecifier وموافقة النظام، واستعلام الحالة وleave دون تغيير default routing للتطبيق؛ كود فقط ولم يُختبر على جهاز.
+- [x] حماية LocalOnlyHotspot من رد البدء المتأخر بعد الإلغاء (generation guard + release).
+- [x] إضافة تصريحَي ACCESS_NETWORK_STATE وCHANGE_NETWORK_STATE الضروريين لطلب Network.
+- [x] اختبارات Dart لواجهة join/status/leave مكتوبة وغير منفّذة بعد.
+- [ ] Authentication/capabilities exchange بين الهاتفين، نقل credentials بمسار مؤمّن ومحدّد الجلسة، وتجنب نشرها في multicast أو logs.
+- [ ] ربط sockets الخاصة بالنقل عبر Android Network handle، مع فحص موثوق قبل التحول، بدون bindProcessToNetwork.
+- [ ] إظهار حالة الاتصال الفعلي بالمستخدم، cleanup عندما تفشل أو تُلغى العملية.
+- [ ] CI Android + اختبارات هاتفين + قياسات فعلية + safe resume. لا APK نهائي.

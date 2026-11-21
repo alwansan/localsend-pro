@@ -5,7 +5,7 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-21",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P0 implemented / P1 pending validation",
+  "stage": "P1/P3 partial: receiver association bridge + cancellation guards; not yet wired to transfers",
   "status": "partial-implementation-not-validated",
   "verified": {
     "repoWrite": true,
@@ -31,7 +31,11 @@
       "androidLocalOnlyHotspotStartStopBridge": true,
       "androidRuntimePermissionPrompt": true,
       "remoteAssociationImplemented": false,
-      "automaticSwitchImplemented": false
+      "automaticSwitchImplemented": false,
+      "receiverAssociationBridgeImplemented": true,
+      "associationRequiresAndroidConsent": true,
+      "socketBindingImplemented": false,
+      "hotspotStartCancellationGuard": true
     },
     "prefer5GHz": {
       "requestedDefault": true,
@@ -55,28 +59,34 @@
     "workflow": ".github/workflows/pro-android-diagnostics.yml",
     "configured": true,
     "pushTriggeredRunVerified": false,
-    "unitTests": "written-not-run",
+    "unitTests": "written-not-run (including pro_wifi_join_test.dart)",
     "diagnosticApk": "not-verified",
     "finalApk": "not-built",
     "phoneToPhoneTests": "not-run"
   },
   "next": [
-    "Verify GitHub Actions result and repair build or analyzer failures",
-    "Add authenticated peer capability exchange and prevent downgrade attacks",
-    "Add receiver Wi-Fi association with consent and interface-bound sockets",
-    "Integrate actual performance tracing and safely select transfer route",
-    "Implement safe resumable chunk protocol with offset, integrity verification and backoff",
-    "End-to-end two-phone Wi-Fi 2.4/5GHz, router and hotspot test"
+    "Run GitHub Actions Pro diagnostics; connector cannot currently confirm push-triggered runs",
+    "Add authenticated Pro peer capability exchange and securely convey hotspot credentials only after consent; preserve TLS fingerprint identity",
+    "Bind Rust transfer sockets to the consented Android Network (without bindProcessToNetwork), verify reachability then select route",
+    "Test local-only hotspot request/association lifecycle across Android versions and failure paths",
+    "Connect real transfer progress to a safe health monitor; no reset until byte-offset resumption is implemented",
+    "Implement verified chunk offset resume + integrity + atomic completion",
+    "Test two actual Android phones on LAN 2.4/5 GHz and local hotspot; ship final APK only after pass"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
     "Never modify main",
     "No premature final APK claims",
     "Update restore docs and state after each work phase",
-    "Added tests for existing 2.4GHz LAN and receiver-hosted hotspot; tests are written but not yet executed."
+    "Added tests for existing 2.4GHz LAN and receiver-hosted hotspot; tests are written but not yet executed.",
+    "2026-11-21: Added receiver-side WifiNetworkSpecifier request with system dialog (API29+) and explicit leave/status. Not wired to transfers.",
+    "2026-11-21: Added generation guard to stop asynchronous hotspot resurrection after cancellation; no actual phone test.",
+    "Android manifest adds CHANGE_NETWORK_STATE and ACCESS_NETWORK_STATE for ConnectivityManager requestNetwork.",
+    "Source work commits bcac11292ee4a69301763b8bb78104710f12b902 and 02560c8dfdaad0dab821f4452c59e3c9190f33bf.",
+    "Cannot equate empty combined statuses or PR-only workflow-run results with successful Actions runs."
   ],
   "lastUpdated": "2026-11-21",
-  "latestCodeCommit": "d248fb402465ec937ea2dec813eff393620692a6",
+  "latestCodeCommit": "02560c8dfdaad0dab821f4452c59e3c9190f33bf",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
@@ -88,6 +98,11 @@
     "app/android/app/src/main/kotlin/org/localsend/localsend_app/ProLocalOnlyHotspot.kt",
     "app/lib/pages/tabs/settings_tab.dart",
     "app/lib/pages/tabs/send_tab.dart",
-    ".github/workflows/pro-android-diagnostics.yml"
+    ".github/workflows/pro-android-diagnostics.yml",
+    "app/android/app/src/main/kotlin/org/localsend/localsend_app/ProWifiJoin.kt",
+    "app/lib/pro/pro_wifi_join.dart",
+    "app/test/unit/pro/pro_wifi_join_test.dart",
+    "app/android/app/src/main/kotlin/org/localsend/localsend_app/MainActivity.kt",
+    "app/android/app/src/main/AndroidManifest.xml"
   ]
 }

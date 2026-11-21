@@ -27,3 +27,11 @@
 - **الحالة: لا يوجد تشغيل CI موثق أو APK ناجح موثق؛ لا تعلن final**. في بداية الجلسة التالية تحقق أولاً من Actions، أصلح فشل البناء، ثم ابدأ P1/P2. حالة GitHub STATE.json أحدث من هذه اللقطة.
 
 - آخر تحديث كود 2026-11-21: d248fb402465ec937ea2dec813eff393620692a6 (تصحيح قراءة نطاق LAN واختبارات استضافة الطرف المستقبل). اقرأ HEAD الفعلي فهو المرجع الأحدث.
+
+## تحديث Continue في 2026-11-21 — نقطة استئناف جديدة
+- HEAD source commit المثبت: `02560c8dfdaad0dab821f4452c59e3c9190f33bf`؛ **تحقّق من HEAD الأحدث أولاً**.
+- صار عندنا receiver-side Wi-Fi association عبر WifiNetworkSpecifier Android 10+ `ProWifiJoin.kt` مع Dart `pro_wifi_join.dart`، اختبار `pro_wifi_join_test.dart`، وصلاحيات Manifest. لا يغيّر process routing ويعيد networkHandle والنتيجة بعد موافقة النظام.
+- صُحّح async local hotspot cancellation بgeneration guard حتى رد قديم ما يفتح AP بعد الإلغاء.
+- الكود منشور على feature/android-pro-fast-transfer لكن **غير موصول بعد بمسار إرسال الملفات Rust ولا التفاوض على credentials ولا الاستئناف ولا auto route**، لذلك لا تستخدم وصف "مكتمل" أو "APK نهائي".
+- حالة CI push غير مؤكدة؛ أدوات فحص status لا تعرض GitHub Actions push عند هذا الحساب. ارجع إلى Actions مباشرة إن أمكن، وشغّل التحليل والاختبارات والبناء التجريبي قبل تجربة الهاتف.
+- الخطوة التالية: capability handshake موثّق، حماية كلمات مرور hotspot داخل جلسة مشفرة، ثم socket binding للشبكة المقصودة واختبار الفشل/fallback؛ بعدها safe resume مع offset وhash.

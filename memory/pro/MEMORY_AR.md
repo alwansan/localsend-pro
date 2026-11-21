@@ -30,3 +30,11 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 
 ## سجل تنفيذ المرحلة التأسيسية — 2026-11-21
 في feature/android-pro-fast-transfer: تمت إضافة التخزين المستقل لإعدادات النقل/الهوتسبوت/5GHz + لوحتين بالواجهة، planner مستقل مع اختبارات 2.4/5/LAN/legacy، مراقب هبوط سرعة مع اختبارات، كشف Android WiFi في Kotlin وDart، واستدعاءات بدء/إيقاف LocalOnlyHotspot مع طلب صلاحيات. Workflow Android ARM64 تشخيصي على push. غير منفذ بعد: التفاوض بين الطرفين، اتصال جهاز المستقبل بالهوتسبوت، اختيار النطاق الفعلي، استئناف upload مع offset، إصلاح تلقائي لشبكة متدهورة، اختبار جهازين، إثبات نجاح بناء APK. لا تدعي اكتمال أي منها.
+
+## متابعة Continue — جلسة 2026-11-21 (P1/P3 جزئي)
+- على فرع feature/android-pro-fast-transfer فقط: أضيفت وصلة **ProWifiJoin.kt** للمستقبل Android 10+ باستعمال WifiNetworkSpecifier وConnectivityManager.requestNetwork مع موافقة Android، وإرجاع NetworkHandle كمعرف لمسار شبكي مقترح، حالة الاتصال، IPv4 المحلي، وإلغاء صريح بدون bindProcessToNetwork.
+- أضيف Dart bridge **pro_wifi_join.dart** واختبار **pro_wifi_join_test.dart** (مكتوب وغير منفّذ على CI بعد). Manifest يصرح بـ CHANGE_NETWORK_STATE وACCESS_NETWORK_STATE.
+- أُصلح سباق إلغاء startLocalOnlyHotspot: generation token يمنع callbacks القديمة من إحياء نقطة اتصال بعد الإلغاء، ويُنهي pending result عند الإلغاء.
+- مهم: **لا ربط لمحرك Rust بالشبكة بعد؛ لا تبادل مؤمّن لكلمة مرور hotspot؛ لا اتصال مباشر تلقائي end-to-end؛ لا resume**. لا تستعمل شبكة الجديدة للنقل حتى يتحقق socket binding وauthentication.
+- GitHub Actions: توجد Workflow pro-android-diagnostics.yml، ولكن نتائج push CI غير متحقَّق منها؛ أداة commit runs تعرض PR فقط. لا تدّع نجاح APK/اختبارات.
+- كومِتات الكود: bcac11292ee4a69301763b8bb78104710f12b902 ،02560c8dfdaad0dab821f4452c59e3c9190f33bf. ابدأ في الجلسة التالية بفحص HEAD الجديد وSTATE ثم أكمل التفاوض الآمن وربط مسار Rust.
