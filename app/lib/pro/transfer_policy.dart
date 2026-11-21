@@ -5,7 +5,7 @@
 /// sender must never switch networks based solely on this result.
 enum ProRadioBand { unknown, ghz24, ghz5 }
 
-enum ProRoute { existingLan, localOnlyHotspot }
+enum ProRoute { existingLan, localOnlyHotspot, unavailable }
 
 class ProTransferOptions {
   final bool acceleratedTransport;
@@ -124,7 +124,7 @@ ProTransferPlan chooseProTransferPlan({
   }
 
   return ProTransferPlan(
-    route: ProRoute.existingLan,
+    route: context.lanReachable ? ProRoute.existingLan : ProRoute.unavailable,
     preferredBand: lanBand,
     hostIsSender: false,
     requiresConsent: false,
