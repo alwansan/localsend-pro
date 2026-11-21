@@ -44,3 +44,11 @@ idle → negotiating → transferring → (degraded) → probing → recovering 
 - `ProLocalOnlyHotspot.kt`: generation counter يلغي callbacks غير الحالية ويغلق reservation قديمة بعد الإلغاء. Lifecycle cleanup في MainActivity.onDestroy.
 - متطلب تكامل لاحق: مرّر NetworkHandle إلى طبقة نقل Android/Rust موثوقة، واربط sockets الفردية بدل تغيير default network لكل العملية، ثم اعمل TLS pinning وفحص reachability وthroughput قبل التبديل.
 - GitHub Android diagnostics غير مثبت نجاحه؛ لا تخمّن نتائج CI.
+
+## تفصيل تطبيق P1/P3/P4 — Continue 2026-11-21
+1. Native Android `ProWifiJoin.probeIpv4` يستعمل Network.socketFactory لإنشاء socket مؤقت مرتبط حصراً بالشبكة الموافق عليها، مع timeout=2500ms، دون DNS ولا Internet IP ولا UI blocking؛ النتيجة reachable/elapsedMillis فقط. عميل LocalSend Rust لم يتحول إلى الشبكة الجديدة ولم نضمن شهادة TLS على هذا probe.
+2. ربط Rust لاحقاً: Android NDK API `android_setsocknetwork()` أو `Network.bindSocket(fd)` ممكن على socket منفرد قبل connect؛ تكامل reqwest يحتاج connector يُنشئ sockets مبكراً ويتحفظ على ALPN + TLS client auth/pinning وعدم proxy. إياك تستخدم bindProcessToNetwork كحل سريع لأنه قد يقطع discovery والاتصالات الجارية. راجع https://developer.android.com/ndk/reference/group/networking.
+3. `ProTransferTelemetry` يتلقى progress عند قراءة محتوى HTTP body من Rust؛ read bytes ليست receiver persisted/ACKed bytes. لا retry/reconnect تلقائي إلا بعد دعم offset الموثوق. Timer واحد مشترك خلال عمليات الإرسال، والمراقبة تنتهي عند completed/failed/cancel.
+4. `ProResumeLedger` فعلاً يحدد staged vs confirmed offset، يتحقق SHA256 لكل chunk، لا يَقبل duplicate إلا إذا تطابقت metadata/hash، ولا يعلن verified قبل اكتمال الحجم وبصمة محتوى مستقبل كاملة. **المتكامل مع القرص لاحقاً يجب أن يعمل fsync+checkpoint قبل confirmDurableWrite ويزيل أي bytes غير مؤكدة عند إعادة الفتح.** لا expose API خارجي أو تحوّل إلى engine حي حتى يتوفر persistent resume negotiation.
+5. لا تبادل كلمة مرور hotspot عبر multicast أو discovered metadata، ولا اعتماد على TCP probe دون TLS pinned fingerprint. احتفظ باختبار LAN/hotspot وfallback لـLocalSend القديم.
+6. Workflow Pro يقوم بتحليل live send/progress، وAndroid debug artifact يحتوي SHA256SUMS وBUILD_INFO إذا نجح. نجاح البناء لم يتم إثباته، لذلك لا APK نهائي.

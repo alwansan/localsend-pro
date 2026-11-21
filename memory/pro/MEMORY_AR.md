@@ -38,3 +38,10 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 - مهم: **لا ربط لمحرك Rust بالشبكة بعد؛ لا تبادل مؤمّن لكلمة مرور hotspot؛ لا اتصال مباشر تلقائي end-to-end؛ لا resume**. لا تستعمل شبكة الجديدة للنقل حتى يتحقق socket binding وauthentication.
 - GitHub Actions: توجد Workflow pro-android-diagnostics.yml، ولكن نتائج push CI غير متحقَّق منها؛ أداة commit runs تعرض PR فقط. لا تدّع نجاح APK/اختبارات.
 - كومِتات الكود: bcac11292ee4a69301763b8bb78104710f12b902 ،02560c8dfdaad0dab821f4452c59e3c9190f33bf. ابدأ في الجلسة التالية بفحص HEAD الجديد وSTATE ثم أكمل التفاوض الآمن وربط مسار Rust.
+
+## Continue — جلسة 2026-11-21، دفعة الشبكة/الصحة/الاستئناف
+- كومِت `ee37899fc129dc66f6c4f9d695cdbbd9811d1a46`: `ProWifiJoin.probeIpv4` باستخدام Network.socketFactory من الشبكة التي وافق عليها Android، من thread منفصل، IPv4 محلي فقط، مع قياس latency ونتيجة reachable؛ channel/Dart وDart tests؛ **هذا TCP probe فقط، لا يتحقق من TLS ولا يوجّه Rust HTTP**.
+- كومِت `dc5b38744df68532f63db48e73dde99865129642`: مراقب `ProTransferTelemetry` حي مرتبط بHttpUploadFileStarted/Progress/Finished/Failed وبحالات إلغاء الجلسة، وTimer كل ثانية حتى يلتقط توقف وصول أحداث التقدم؛ عرضه في تفاصيل صفحة إرسال الملفات. لا يتحكم بالنقل إطلاقاً، وبياناته هي bytes المقروءة من المرسل وليس bytes المؤكدة على المستقبل.
+- كومِت `b5ac64c32a99accc568505d746e5b872db2be7e3`: `ProResumeLedger` (Dart pure): hash SHA256 لكل جزء، حدود 4MiB، session+file identity، stage ثم receipt بعد confirmDurableWrite، idempotent duplicates، منع jump/gaps، final hash verification؛ اختبارات فشل الشبكة والتكرار والأجزاء الخاطئة والملف الفارغ. **لا يستخدمه transport الحي بعد، ولا توجد كتابة أو checkpoint على القرص أو endpoint استئناف.**
+- كومِت `a17f09faac518c0ea9d11c5bf2295a64141ec33e`: CI يحلل send_provider وprogress_page مع pro/tests؛ يحفظ DEBUG APK مع SHA256SUMS وBUILD_INFO عند نجاح البناء. لا يوجد دليل على CI أخضر من الأداة المتاحة.
+- الأولوية القادمة: capability exchange مؤمّن عبر pinned TLS، Android Network socket binding لعميل Rust، ثم persistent chunk checkpoint/offset API، ثم اختبارات الجهازين؛ احتفظ fallback LocalSend v2.

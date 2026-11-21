@@ -67,3 +67,15 @@
 - [ ] ربط sockets الخاصة بالنقل عبر Android Network handle، مع فحص موثوق قبل التحول، بدون bindProcessToNetwork.
 - [ ] إظهار حالة الاتصال الفعلي بالمستخدم، cleanup عندما تفشل أو تُلغى العملية.
 - [ ] CI Android + اختبارات هاتفين + قياسات فعلية + safe resume. لا APK نهائي.
+
+## تحديث Continue — دفعة تنفيذ 2026-11-21
+- [x] Android consented Network TCP probe بSocketFactory خاص بالشبكة ومن دون تغيير default network؛ رقم زمن الاتصال فقط ولا يعتبر TLS identity proof.
+- [x] Telemetry على تدفق Upload events + tick دوري لرصد silence؛ لا يتدخل بالملفات ولا يقطع الاتصالات.
+- [x] عرض health read-stream في Advanced progress (sender only؛ ليس ACK المستقبل).
+- [x] ProResumeLedger للـchunk hashing وoffset المرحلي وACK بعد دوام التخزين ورفض التكرار الفاسد؛ اختبارات مكتوبة.
+- [x] CI Pro يفحص التكامل في send/progress ويضيف checksum وأثر commit لـDebug APK إذا نجح البناء.
+- [ ] ربط TCP المقبول بـReqwest/Rust مع fingerprint verification.
+- [ ] تبادل peer capabilities الموثق والموافقة قبل نقل كلمات مرور Hotspot.
+- [ ] كتابة فعليّة آمنة لملف جزئي وcheckpoint durable وعملية استئناف تلقائية مع endpoint لـoffset.
+- [ ] قياس receiver ACK وsocket/network telemetry وbenchmark هاتفين؛ لا تفسر Sender read-progress على أنه completed transfer.
+- [ ] إثبات نتائج CI/Android build؛ test files مكتوبة فقط وغير منفذة.

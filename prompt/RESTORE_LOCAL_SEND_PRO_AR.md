@@ -35,3 +35,9 @@
 - الكود منشور على feature/android-pro-fast-transfer لكن **غير موصول بعد بمسار إرسال الملفات Rust ولا التفاوض على credentials ولا الاستئناف ولا auto route**، لذلك لا تستخدم وصف "مكتمل" أو "APK نهائي".
 - حالة CI push غير مؤكدة؛ أدوات فحص status لا تعرض GitHub Actions push عند هذا الحساب. ارجع إلى Actions مباشرة إن أمكن، وشغّل التحليل والاختبارات والبناء التجريبي قبل تجربة الهاتف.
 - الخطوة التالية: capability handshake موثّق، حماية كلمات مرور hotspot داخل جلسة مشفرة، ثم socket binding للشبكة المقصودة واختبار الفشل/fallback؛ بعدها safe resume مع offset وhash.
+
+## تحديث الاستمرار — 2026-11-21 (اقرأ STATE الحي دائماً)
+آخر Source Commit قبل تحديث الملفات: `a17f09faac518c0ea9d11c5bf2295a64141ec33e`. لا تعدّل main. استأنف من HEAD الفعلي في `feature/android-pro-fast-transfer`.
+**تم فعلياً**: Android Wi-Fi approved-Network TCP reachability probe/latency (`ProWifiJoin.kt`, Dart)، Live sender-read progress monitor `transfer_telemetry.dart` مرتبط بـsend_provider ومظهر Advanced progress، ونواة `resumable_chunk_ledger.dart` + اختبارات hash, monotonic offset, durable ACK gating, duplicate protection. CI Pro يحلل live integration ويضيف SHA256SUMS/BUILD_INFO للـdebug APK.
+**لم يتم**: التشغيل المؤكد لاختبارات Flutter أو Kotlin/Android CI؛ من الأدوات الحالية لا يمكن توثيق نجاح Action push، ولا APK نهائي؛ لا socket binding لـRust، ولا authenticated capability/credential handshake، ولا persistent checkpoint ولا endpoint/restore للجهازين. لا تدّع أن البروتوكول الجديد شغّال للنقل النهائي.
+**التالي**: تحقق من Actions وحل أي build faults، ثم handshake مثبت TLS قبل credentials، ربط Rust transport بالشبكة المختارة فقط، نقل chunks للقرص عبر verified checkpoint/offset مع hash، مراقبة تدهور مع تعافٍ آمن، benchmark هاتفين 2.4/5GHz LAN وHotspot.

@@ -5,8 +5,8 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-21",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P1/P3 partial: receiver association bridge + cancellation guards; not yet wired to transfers",
-  "status": "partial-implementation-not-validated",
+  "stage": "P1 live sender diagnostics / P3 consent-bound network probe / P4 resumable chunk ledger: partial, no transfer switch",
+  "status": "code-published-tests-and-build-not-verified",
   "verified": {
     "repoWrite": true,
     "branchCreated": true,
@@ -35,7 +35,10 @@
       "receiverAssociationBridgeImplemented": true,
       "associationRequiresAndroidConsent": true,
       "socketBindingImplemented": false,
-      "hotspotStartCancellationGuard": true
+      "hotspotStartCancellationGuard": true,
+      "consentBoundTcpProbeImplemented": true,
+      "nativeTcpProbeUsesApprovedNetwork": true,
+      "probeDoesNotAuthenticatePeer": true
     },
     "prefer5GHz": {
       "requestedDefault": true,
@@ -47,31 +50,40 @@
     "healthMonitor": {
       "pureMonitorImplemented": true,
       "unitTestsWritten": true,
-      "connectedToLiveTransfer": false,
-      "doesNotRestartOrDropFiles": true
+      "connectedToLiveTransfer": true,
+      "doesNotRestartOrDropFiles": true,
+      "observesSenderReadProgressOnly": true,
+      "timerDetectsSilentStalls": true,
+      "nonDestructive": true
     },
     "resumableTransfer": {
       "protocolAndOffsetImplementation": false,
-      "secureRecovery": false
+      "secureRecovery": false,
+      "chunkHashAndDurableOffsetLedgerImplemented": true,
+      "testCasesWritten": true,
+      "diskCheckpointAndFileWriterImplemented": false
     }
   },
   "build": {
     "workflow": ".github/workflows/pro-android-diagnostics.yml",
     "configured": true,
     "pushTriggeredRunVerified": false,
-    "unitTests": "written-not-run (including pro_wifi_join_test.dart)",
+    "unitTests": "written-not-run (transfer_telemetry, resumable_chunk_ledger, wifi_join and route policy)",
     "diagnosticApk": "not-verified",
     "finalApk": "not-built",
-    "phoneToPhoneTests": "not-run"
+    "phoneToPhoneTests": "not-run",
+    "workflowEnhancedForLiveIntegrationAnalysis": true,
+    "workflowArtifactChecksumConfigured": true
   },
   "next": [
-    "Run GitHub Actions Pro diagnostics; connector cannot currently confirm push-triggered runs",
-    "Add authenticated Pro peer capability exchange and securely convey hotspot credentials only after consent; preserve TLS fingerprint identity",
-    "Bind Rust transfer sockets to the consented Android Network (without bindProcessToNetwork), verify reachability then select route",
-    "Test local-only hotspot request/association lifecycle across Android versions and failure paths",
-    "Connect real transfer progress to a safe health monitor; no reset until byte-offset resumption is implemented",
-    "Implement verified chunk offset resume + integrity + atomic completion",
-    "Test two actual Android phones on LAN 2.4/5 GHz and local hotspot; ship final APK only after pass"
+    "Verify latest GitHub Actions status and fix any Dart analyzer, Kotlin or Rust build errors; no success confirmed",
+    "Implement authenticated opt-in peer capabilities negotiation that cannot downgrade TLS identity",
+    "Securely transport consented hotspot configuration over pinned TLS only, never public discovery or logs",
+    "Bind only selected Rust HTTP transport sockets to Android approved Network and verify fingerprint and route",
+    "Provide durable partial-file and checkpoint persistence, source/receiver SHA-256 validation, offset query and resume endpoint",
+    "Connect recovery state machine to receiver-confirmed offsets; keep existing LocalSend v2 fallback",
+    "Run real Android handset tests for 2.4/5GHz LAN and direct link with large files and thermal throttling",
+    "Release final ARM64 APK only after full acceptance"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
@@ -83,10 +95,15 @@
     "2026-11-21: Added generation guard to stop asynchronous hotspot resurrection after cancellation; no actual phone test.",
     "Android manifest adds CHANGE_NETWORK_STATE and ACCESS_NETWORK_STATE for ConnectivityManager requestNetwork.",
     "Source work commits bcac11292ee4a69301763b8bb78104710f12b902 and 02560c8dfdaad0dab821f4452c59e3c9190f33bf.",
-    "Cannot equate empty combined statuses or PR-only workflow-run results with successful Actions runs."
+    "Cannot equate empty combined statuses or PR-only workflow-run results with successful Actions runs.",
+    "2026-11-21 Continue: source commits ee37899, dc5b387, b5ac64c, a17f09f (probe, live telemetry, chunk ledger, CI coverage).",
+    "TCP reachability through approved Network is NOT TLS peer authentication and does not switch Rust HTTP transport.",
+    "Throughput health measures Rust file read progress, not durable receiver acknowledgement, so never auto restart on this signal alone.",
+    "In-memory ProResumeLedger enforces sender chunk hash, monotonic durable ACK, duplicates and full hash; disk persistence/network endpoints not yet implemented.",
+    "CI upload includes checksum and commit metadata on success, but Actions status cannot be verified with available connector."
   ],
   "lastUpdated": "2026-11-21",
-  "latestCodeCommit": "02560c8dfdaad0dab821f4452c59e3c9190f33bf",
+  "latestCodeCommit": "a17f09faac518c0ea9d11c5bf2295a64141ec33e",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
@@ -103,6 +120,12 @@
     "app/lib/pro/pro_wifi_join.dart",
     "app/test/unit/pro/pro_wifi_join_test.dart",
     "app/android/app/src/main/kotlin/org/localsend/localsend_app/MainActivity.kt",
-    "app/android/app/src/main/AndroidManifest.xml"
+    "app/android/app/src/main/AndroidManifest.xml",
+    "app/lib/pro/transfer_telemetry.dart",
+    "app/test/unit/pro/transfer_telemetry_test.dart",
+    "app/lib/pro/resumable_chunk_ledger.dart",
+    "app/test/unit/pro/resumable_chunk_ledger_test.dart",
+    "app/lib/provider/network/send_provider.dart",
+    "app/lib/pages/progress_page.dart"
   ]
 }
