@@ -96,7 +96,7 @@ ProTransferPlan chooseProTransferPlan({
           sender.currentWifiBand == ProRadioBand.ghz5 &&
           receiver.currentWifiBand == ProRadioBand.ghz5
       ? ProRadioBand.ghz5
-      : (context.lanReachable ? ProRadioBand.unknown : ProRadioBand.unknown);
+      : ProRadioBand.unknown;
 
   // Never disrupt a healthy LAN just to start a hotspot; 5GHz LAN works
   // even if the separate direct-hotspot preference is disabled.
