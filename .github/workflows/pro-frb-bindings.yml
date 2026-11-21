@@ -50,7 +50,7 @@ jobs:
           while IFS= read -r path; do
             [ -z "$path" ] && continue
             case "$path" in
-              packages/localsend_isolates/lib/rust/*|packages/localsend_isolates/rust/src/frb_generated.rs) ;;
+              Cargo.lock|packages/localsend_isolates/lib/rust/*|packages/localsend_isolates/rust/src/frb_generated.rs) ;;
               *) echo "::error::Generator unexpectedly changed $path"; exit 1 ;;
             esac
           done <<EOF
@@ -58,7 +58,7 @@ jobs:
           EOF
       - name: Publish generated bindings to the same feature branch
         run: |
-          git add packages/localsend_isolates/lib/rust packages/localsend_isolates/rust/src/frb_generated.rs
+          git add Cargo.lock packages/localsend_isolates/lib/rust packages/localsend_isolates/rust/src/frb_generated.rs
           if git diff --cached --quiet; then
             echo "Generated bindings already up to date"
             exit 0
