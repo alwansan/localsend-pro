@@ -92,10 +92,11 @@ ProTransferPlan chooseProTransferPlan({
   final compatible = sender.supportsPro && receiver.supportsPro;
   final prefer5 = options.prefer5GHz;
 
-  final lanBand = prefer5 &&
-          sender.currentWifiBand == ProRadioBand.ghz5 &&
-          receiver.currentWifiBand == ProRadioBand.ghz5
-      ? ProRadioBand.ghz5
+  // Existing LAN radio band is an observation, not a band we can force.
+  // Even if the 5 GHz *preference* is off, an already-joined 5 GHz network
+  // remains 5 GHz until Android/user changes its Wi-Fi association.
+  final lanBand = context.lanReachable && sender.currentWifiBand == receiver.currentWifiBand
+      ? sender.currentWifiBand
       : ProRadioBand.unknown;
 
   // Never disrupt a healthy LAN just to start a hotspot; 5GHz LAN works
