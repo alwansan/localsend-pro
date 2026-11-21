@@ -1,6 +1,7 @@
 package org.localsend.localsend_app
 
 import android.annotation.SuppressLint
+import android.Manifest
 import android.app.Activity
 import android.content.ContentResolver
 import android.content.Context
@@ -30,6 +31,7 @@ private const val REQUEST_CODE_PICK_DIRECTORY = 1
 private const val REQUEST_CODE_PICK_DIRECTORY_PATH = 2
 private const val REQUEST_CODE_PICK_FILE = 3
 private const val REQUEST_CODE_LOCAL_NETWORK = 4
+private const val REQUEST_CODE_PRO_HOTSPOT = 5
 
 // Not available as a constant in compileSdk 36.
 private const val PERMISSION_ACCESS_LOCAL_NETWORK = "android.permission.ACCESS_LOCAL_NETWORK"
@@ -38,6 +40,8 @@ private const val API_LEVEL_ANDROID_17 = 37
 class MainActivity : FlutterActivity() {
     private var pendingResult: MethodChannel.Result? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
+    private var pendingProHotspotResult: MethodChannel.Result? = null
+    private val proHotspot = ProLocalOnlyHotspot()
 
     /// share_handler drops share intents arriving via onNewIntent while the Dart side
     /// is not subscribed to its media stream yet, which happens when this singleTask
@@ -84,6 +88,11 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "getProWifiCapabilities" -> result.success(ProWifiCapabilities.snapshot(this))
+                "startProLocalOnlyHotspot" -> requestProHotspot(result)
+                "stopProLocalOnlyHotspot" -> {
+                    proHotspot.stop()
+                    result.success(null)
+                }
                 "pickDirectory" -> {
                     pendingResult = result
                     openDirectoryPicker(onlyPath = false)
@@ -146,6 +155,28 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun requestProHotspot(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            result.error("UNSUPPORTED", "Android 8 or newer required", null)
+            return
+        }
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.NEARBY_WIFI_DEVICES
+        } else {
+            Manifest.permission.ACCESS_FINE_LOCATION
+        }
+        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+            proHotspot.start(this, result)
+            return
+        }
+        if (pendingProHotspotResult != null) {
+            result.error("PERMISSION_PENDING", "A hotspot permission prompt is already open", null)
+            return
+        }
+        pendingProHotspotResult = result
+        requestPermissions(arrayOf(permission), REQUEST_CODE_PRO_HOTSPOT)
+    }
+
     /// Android 17+ gates local network access behind a runtime permission; older versions grant it implicitly.
     private fun hasLocalNetworkPermission(): Boolean {
         if (Build.VERSION.SDK_INT < API_LEVEL_ANDROID_17) {
@@ -159,7 +190,24 @@ class MainActivity : FlutterActivity() {
         if (requestCode == REQUEST_CODE_LOCAL_NETWORK) {
             pendingPermissionResult?.success(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
             pendingPermissionResult = null
+        } else if (requestCode == REQUEST_CODE_PRO_HOTSPOT) {
+            val receiver = pendingProHotspotResult
+            pendingProHotspotResult = null
+            if (receiver != null) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    proHotspot.start(this, receiver)
+                } else {
+                    receiver.error("PERMISSION_DENIED", "Nearby Wi-Fi permission is required for hotspot", null)
+                }
+            }
         }
+    }
+
+    override fun onDestroy() {
+        proHotspot.stop()
+        pendingProHotspotResult?.error("CANCELLED", "Activity closed during permission prompt", null)
+        pendingProHotspotResult = null
+        super.onDestroy()
     }
 
     /// Absolute path of the shared "Download" directory (usually /storage/emulated/0/Download).
