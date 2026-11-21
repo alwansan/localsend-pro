@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
       - name: Analyze Pro code and live send/progress integration
         working-directory: app
-        run: dart analyze lib/pro test/unit/pro lib/provider/network/send_provider.dart lib/pages/progress_page.dart
+        run: dart analyze lib/pro test/unit/pro lib/provider/network/send_provider.dart lib/pages/progress_page.dart lib/pages/device_details_page.dart
       - name: Test Pro route policy
         working-directory: app
         run: flutter test test/unit/pro
@@ -54,6 +54,8 @@ jobs:
             packages/core/src/http/client/url.rs
       - name: Test Rust HTTP core including Pro capabilities
         run: cargo +1.97.1 test -p localsend --features http --lib
+      - name: Integration test pinned Pro handshake on real TLS server
+        run: cargo +1.97.1 test -p localsend --features http --test v2_tls_pinning
 
   android-arm64-debug:
     name: Android ARM64 diagnostic APK (not final)

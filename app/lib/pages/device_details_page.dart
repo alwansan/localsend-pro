@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:localsend_app/config/theme.dart';
+import 'package:localsend_app/pro/pro_peer_capabilities_panel.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/favorite_device.dart';
 import 'package:localsend_app/pages/verify_page.dart';
@@ -129,6 +131,10 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> with Refena {
             Text(t.deviceDetailsPage.channels.title, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             _HttpChannels(alias: device.alias, channels: httpChannels),
+          ],
+          if (defaultTargetPlatform == TargetPlatform.android) ...[
+            const SizedBox(height: 20),
+            ProPeerCapabilitiesPanel(device: device),
           ],
           const SizedBox(height: 20),
           Row(

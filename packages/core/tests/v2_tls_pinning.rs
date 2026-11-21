@@ -430,3 +430,73 @@ async fn test_register_without_pin_returns_public_key() {
     assert!(response.public_key.is_some());
     assert_eq!(response.body.fingerprint, server_identity.fingerprint);
 }
+
+/// This exercises the actual HTTPS endpoint with real mutually authenticated
+/// peers rather than only testing the routing predicate.
+#[tokio::test]
+async fn test_pro_capability_advertisement_requires_pinned_https() {
+    let server_identity = generate_identity();
+    let sender = generate_identity();
+    let server = start_tls_server(&server_identity).await;
+    let pinned = client(&sender, Some(&server_identity.fingerprint));
+
+    let advertised = pinned
+        .pro_capabilities(ProtocolType::Https, "127.0.0.1", server.port)
+        .await
+        .expect("pinned peer should be reachable")
+        .expect("Pro peer must advertise the v1 schema");
+    assert_eq!(advertised.schema_version, 1);
+    assert!(advertised.pinned_tls_required);
+    assert!(!advertised.resumable_upload);
+    assert!(!advertised.hotspot_coordination);
+    assert!(!advertised.network_bound_upload);
+
+    let discovery = client(&sender, None);
+    assert!(discovery
+        .pro_capabilities(ProtocolType::Https, "127.0.0.1", server.port)
+        .await
+        .expect("unpinned Pro query is rejected locally")
+        .is_none());
+    assert!(pinned
+        .pro_capabilities(ProtocolType::Http, "127.0.0.1", server.port)
+        .await
+        .expect("plaintext Pro query is rejected locally")
+        .is_none());
+
+    let wrong_identity = generate_identity();
+    let impostor_check = client(&sender, Some(&wrong_identity.fingerprint));
+    let failure = impostor_check
+        .pro_capabilities(ProtocolType::Https, "127.0.0.1", server.port)
+        .await;
+    assert!(matches!(failure, Err(ClientError::Reqwest(_))));
+}
+
+/// Web mode allows ordinary browsers without TLS client certificates, but
+/// the new Pro capabilities endpoint still must not appear to them.
+#[tokio::test]
+async fn test_pro_capabilities_hidden_from_browser_without_client_certificate() {
+    let server_identity = generate_identity();
+    let server = start_tls_server_with_web(
+        &server_identity,
+        WebConfig {
+            mode: WebMode::Upload,
+            ..WebConfig::default()
+        },
+    )
+    .await;
+    let browser = localsend::reqwest::Client::builder()
+        .use_rustls_tls()
+        .danger_accept_invalid_certs(true)
+        .build()
+        .unwrap();
+
+    let response = browser
+        .get(format!(
+            "https://127.0.0.1:{}/api/localsend/pro/v1/capabilities",
+            server.port
+        ))
+        .send()
+        .await
+        .expect("browser in web mode may connect");
+    assert_eq!(response.status().as_u16(), 404);
+}
