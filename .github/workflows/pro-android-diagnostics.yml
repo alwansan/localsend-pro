@@ -52,7 +52,7 @@ jobs:
             packages/core/src/http/server/pro.rs \
             packages/core/src/http/client/v2.rs \
             packages/core/src/http/client/url.rs
-      - name: Validate Pro native writer leases inside one Linux process
+      - name: Validate Pro native writer leases and checkpoint fsync on Linux
         run: cargo +1.97.1 test -p rust_lib_localsend_app --lib pro_file_lease
       - name: Test Rust HTTP core including Pro capabilities
         run: cargo +1.97.1 test -p localsend --features http --lib
