@@ -7,6 +7,7 @@ import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/pages/web_share_page.dart';
+import 'package:localsend_app/pro/transfer_telemetry.dart';
 import 'package:localsend_app/provider/file_transfer_provider.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
@@ -512,6 +513,18 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                                       t.progressPage.total.speed(
                                         speed: speedInBytes.asReadableFileSize,
                                       ),
+                                    ),
+                                  if (sendSession != null)
+                                    ListenableBuilder(
+                                      listenable: proTransferTelemetry,
+                                      builder: (context, _) {
+                                        final health = proTransferTelemetry.healthForSession(widget.sessionId);
+                                        if (health == null) return const SizedBox.shrink();
+                                        return Text(
+                                          'Pro sender read-stream: ${health.name} (diagnostic only; receiver not yet verified)',
+                                          style: Theme.of(context).textTheme.bodySmall,
+                                        );
+                                      },
                                     ),
                                 ],
                               ),

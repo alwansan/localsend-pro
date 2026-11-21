@@ -5,6 +5,7 @@ import 'package:localsend_app/model/send_mode.dart';
 import 'package:localsend_app/model/state/send/send_session_state.dart';
 import 'package:localsend_app/model/state/send/sending_file.dart';
 import 'package:localsend_app/pages/home_page.dart';
+import 'package:localsend_app/pro/transfer_telemetry.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
@@ -698,9 +699,15 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
       await for (final event in taskResult.events) {
         switch (event) {
           case HttpUploadFileStartedEvent():
+            proTransferTelemetry.startFile(
+              sessionId: sessionId,
+              fileId: event.fileId,
+              size: state[sessionId]?.files[event.fileId]?.file.size ?? 0,
+            );
             _logger.info('Sending ${state[sessionId]?.files[event.fileId]?.file.fileName}');
             ref.notifier(fileTransferProvider).setStatus(sessionId: sessionId, fileId: event.fileId, status: FileStatus.sending);
           case HttpUploadFileProgressEvent():
+            proTransferTelemetry.recordProgress(sessionId: sessionId, fileId: event.fileId, progress: event.progress);
             ref
                 .notifier(fileTransferProvider)
                 .setProgress(
@@ -710,6 +717,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
                 );
             _updateForegroundServiceProgress(sessionId);
           case HttpUploadFileFinishedEvent():
+            proTransferTelemetry.finishFile(sessionId: sessionId, fileId: event.fileId);
             // set progress to 100% when successfully finished
             ref
                 .notifier(fileTransferProvider)
@@ -721,6 +729,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
             _updateForegroundServiceProgress(sessionId);
             ref.notifier(fileTransferProvider).setStatus(sessionId: sessionId, fileId: event.fileId, status: FileStatus.finished);
           case HttpUploadFileFailedEvent():
+            proTransferTelemetry.finishFile(sessionId: sessionId, fileId: event.fileId);
             _logger.warning('Error while sending file ${state[sessionId]?.files[event.fileId]?.file.fileName}: ${event.error}');
             ref.notifier(fileTransferProvider).setStatus(sessionId: sessionId, fileId: event.fileId, status: FileStatus.failed);
             state = state.updateSession(
@@ -754,6 +763,10 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
         ),
       );
     } finally {
+      // A cancelled isolate may not emit a per-file finished/failed event.
+      for (final file in uploadFiles) {
+        proTransferTelemetry.finishFile(sessionId: sessionId, fileId: file.fileId);
+      }
       state = state.updateSession(
         sessionId: sessionId,
         state: (s) => s?.copyWith(
@@ -765,6 +778,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
 
   /// Closes the send-session and sends a cancel event to the receiver.
   void cancelSession(String sessionId) {
+    proTransferTelemetry.finishSession(sessionId);
     final sessionState = state[sessionId];
     if (sessionState == null) {
       return;
@@ -804,6 +818,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
   }
 
   void cancelSessionByReceiver(String sessionId) {
+    proTransferTelemetry.finishSession(sessionId);
     final sessionState = state[sessionId];
     if (sessionState == null) {
       return;
@@ -837,6 +852,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
 
   /// Closes the session
   void closeSession(String sessionId) {
+    proTransferTelemetry.finishSession(sessionId);
     final sessionState = state[sessionId];
     if (sessionState == null) {
       return;
@@ -852,6 +868,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
   }
 
   void clearAllSessions() {
+    proTransferTelemetry.reset();
     for (final sessionId in state.keys) {
       TransferNotification.stop(sessionId);
     }
