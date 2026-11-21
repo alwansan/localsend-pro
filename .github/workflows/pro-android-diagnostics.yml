@@ -35,7 +35,7 @@ jobs:
         run: dart analyze lib/pro test/unit/pro
       - name: Test Pro route policy
         working-directory: app
-        run: flutter test test/unit/pro/transfer_policy_test.dart
+        run: flutter test test/unit/pro
 
   android-arm64-debug:
     name: Android ARM64 diagnostic APK (not final)
