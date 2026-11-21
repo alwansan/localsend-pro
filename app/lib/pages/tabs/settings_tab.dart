@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/config/theme.dart';
+import 'package:localsend_app/pro/pro_preferences_panel.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/pages/about/about_page.dart';
@@ -165,6 +166,10 @@ class SettingsTab extends StatelessWidget {
                 ),
               ],
             ),
+            if (defaultTargetPlatform == TargetPlatform.android) ...[
+              const ProPreferencesPanel(),
+              const SizedBox(height: 20),
+            ],
             _SettingsSection(
               title: t.settingsTab.receive.title,
               children: [
