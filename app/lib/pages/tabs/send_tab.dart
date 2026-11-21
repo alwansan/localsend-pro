@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
+import 'package:localsend_app/pro/pro_preferences_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
@@ -167,6 +169,7 @@ class SendTab extends StatelessWidget {
                 ),
               ),
             ],
+            if (defaultTargetPlatform == TargetPlatform.android) const ProPreferencesPanel(compact: true),
             Row(
               children: [
                 const SizedBox(width: _horizontalPadding),
