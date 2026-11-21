@@ -77,3 +77,7 @@
 - `2821e30` integrates Android native `acquireProFileLease` in `ProResumableFileStore.open`, `release` in `close`, returns failure instead of proceeding unlocked. 3 old informational Dart import-order issues cleaned. New DIAGNOSTICS Run `44952326531` pending at checkpoint; should run 44 Flutter, 82 Rust lib + 8 TLS, 2 native file lease tests, ARM64 APK.
 - Diagnostics concurrency now cancel-in-progress=false; Android APK depends on both Rust+Flutter tests. Last confirmed ARM64 artifact still older ID `14724103202` from Run `44947029359`; never call it native lease-enabled or final.
 - Next: examine new CI and fix errors; isolate/device real lock acquisition test; fsync checkpoint directory, receiver authenticated offset+chunk+ACK, Android socket-to-Network binding, hotspot fallback/5GHz and two-device data-integrity test. No live resumable transfer implemented yet.
+
+### آخر تحقق CI (2026-11-22)
+- HEAD source `2821e30` واختبارات Run `44952326531`: Rust (2 flock +82 core+8 TLS) كلها PASS، Flutter 44 PASS وDart analyzer No issues found، ARM64 job `136993506186` كان in_progress (تابع conclusion/artifacts).
+- APK أقدم مؤكد: Run `44951142687` SUCCESS، Artifact `14725669490` ZIP ~93.8MB من e89cbc4؛ لا يحتوي القفل الأصلي.

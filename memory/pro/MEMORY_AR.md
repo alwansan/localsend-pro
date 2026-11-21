@@ -81,3 +81,7 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 - [x] مصدر `2821e30fa471ef3406c425933e0c5450211b599f`: Android `ProResumableFileStore.open` يحصل على native file-description lease قبل قراءة checkpoint، ويحرره عند close أو فشل open؛ إذا فشل الحصول عليه لا يتابع بكتابة غير مقفولة. ثلاث ملاحظات imports cleanup.
 - [~] **Run 44952326531** جديد على source 2821e30، حالته pending وقت checkpoint؛ تأكد من native Rust tests و44 Flutter tests وبناء ARM64 قبل القول إنه جاهز. آخر Android artifact مثبت قبل كل هذه الإضافات = ID 14724103202 من Run 44947029359.
 - [ ] غير مكتمل: power loss directory fsync، atomic final publish، remote session chunk API/offset ACK، socket binding، automatic hotspot/5GHz link switch، device-to-device Android tests. **لا APK نهائي ولا استئناف فعلي عبر الشبكة.**
+
+### تدقيق CI الأحدث — 2026-11-22
+- Run `44952326531`: Rust job `136993136484` **SUCCESS**: 2 native flock lease tests + 82 Rust lib + 8 real TLS = 92 passing, 0 failures. Flutter job `136993136854` **SUCCESS**: 44 tests passed وDart analyzer `No issues found!`. أحدث ARM64 job `136993506186` قيد البناء وقت توثيق النتائج.
+- Run `44951142687` السابق **SUCCESS** وAndroid diagnostic artifact ID `14725669490` (ZIP 93,847,409 bytes) مبني من source `e89cbc4` ولا يضم Rust native lease.

@@ -80,3 +80,5 @@ idle → negotiating → transferring → (degraded) → probing → recovering 
 - `ProResumableFileStore.append` يحظر إعادة استعمال الـhandle بعد خطأ file/checkpoint I/O لأن rename قد يكون نجح قبل ظهور الخطأ؛ `open` التالي فقط يراجع checkpoint/bytes. إذا `.part` orphan غير فارغ وcheckpoint غائب، يحفظه ويتوقف. `verifyComplete` يحجز busy flag أثناء hashing ويغلق handle عند فساد النتيجة.
 - Rust native lease codegen v2.12.0 في workflow pro-frb-bindings.yml، Run 44951796090 نجح ونشر 8f4d466 + Cargo.lock. Run 44952326531 لربط Android الأخير ما يزال بحاجة فحص.
 - هذا قفل تخزين محلي فقط: لم يتم دمجه بعميل/خادم LocalSend v2 واستئناف نقل الشبكة أو ضمان power loss fsync/directory publishing.
+
+- CI verification Run 44952326531: native flock test cases 2 passed, core Rust 82 passed, pinned TLS 8 passed, Flutter Pro 44 passed, Dart analyzer No issues found. Android ARM64 artifact لم يثبت بعد.

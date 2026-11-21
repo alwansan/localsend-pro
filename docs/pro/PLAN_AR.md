@@ -115,3 +115,6 @@
 - [~] Run 44952326531 pending للـ44 Dart + native Rust lease tests + ARM64 APK. لا تدّعي النجاح بلا conclusion.
 - [ ] Test two Android isolates with concurrent open, abnormal process termination and restart; include native fsync checkpoint directory & safe publish before release readiness.
 - [ ] Network session token/chunk endpoints and durable receiver ACK; per-socket Android Network binding and permission-driven hotspot transition.
+
+- [x] نتائج `44952326531`: Rust native file lease 2/2، Rust core 82/82، TLS integration 8/8، Flutter 44/44، Dart analyzer zero issues.
+- [~] Android ARM64 job 136993506186 running; لا تختبر native lease APK من artifact الأقدم 14725669490 لأن source e89cbc4 ليس 2821e30.
