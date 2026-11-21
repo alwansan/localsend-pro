@@ -16,4 +16,14 @@ abstract class RsProFileLease implements RustOpaqueInterface {
   /// Explicitly release the lease after all receive writes/hashes finish.
   /// Dropping this Rust object also closes the file and releases the lock.
   void release();
+
+  /// Complete a checkpoint commit after the Dart side has flushed the
+  /// .part and .pending files and atomically renamed .pending to .json.
+  /// On Linux/Android, fsync on the PARENT DIRECTORY is required to
+  /// persist the directory entry after abrupt power loss. If this fails,
+  /// the caller must NOT acknowledge the chunk and must reopen/replay.
+  ///
+  /// This intentionally uses the directory captured from the locked
+  /// .lease path, not any user-controlled path supplied in a later call.
+  void syncCheckpointDirectory();
 }
