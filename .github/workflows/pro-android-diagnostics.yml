@@ -30,9 +30,9 @@ jobs:
       - name: Resolve Flutter dependencies
         working-directory: app
         run: flutter pub get
-      - name: Analyze Pro code
+      - name: Analyze Pro code and live send/progress integration
         working-directory: app
-        run: dart analyze lib/pro test/unit/pro
+        run: dart analyze lib/pro test/unit/pro lib/provider/network/send_provider.dart lib/pages/progress_page.dart
       - name: Test Pro route policy
         working-directory: app
         run: flutter test test/unit/pro
@@ -62,10 +62,21 @@ jobs:
       - name: Build diagnostic APK
         working-directory: app
         run: flutter build apk --debug --target-platform android-arm64
+      - name: Verify APK and write artifact checksum
+        working-directory: app/build/app/outputs/flutter-apk
+        run: |
+          test -s app-debug.apk
+          sha256sum app-debug.apk > SHA256SUMS.txt
+          printf 'Source commit: %s\nBranch: %s\nArtifact type: DIAGNOSTIC-DEBUG (NOT FINAL)\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > BUILD_INFO.txt
+          cat SHA256SUMS.txt
+
       - name: Upload diagnostic artifact
         uses: actions/upload-artifact@v6
         with:
           name: LocalSend-Pro-Android-arm64-DIAGNOSTIC
-          path: app/build/app/outputs/flutter-apk/app-debug.apk
+          path: |
+            app/build/app/outputs/flutter-apk/app-debug.apk
+            app/build/app/outputs/flutter-apk/SHA256SUMS.txt
+            app/build/app/outputs/flutter-apk/BUILD_INFO.txt
           if-no-files-found: error
           retention-days: 14
