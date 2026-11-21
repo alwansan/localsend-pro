@@ -5,8 +5,8 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-21",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P0",
-  "status": "in-progress",
+  "stage": "P0 implemented / P1 pending validation",
+  "status": "partial-implementation-not-validated",
   "verified": {
     "repoWrite": true,
     "branchCreated": true,
@@ -18,42 +18,75 @@
     "receiverChecksumsDefault": true
   },
   "features": {
-    "transport": {
+    "acceleratedTransport": {
       "requestedDefault": true,
-      "status": "design"
+      "preferencesPersisted": true,
+      "settingsAndSendUI": true,
+      "routePlannerImplemented": true,
+      "liveTransferEngineWired": false
     },
     "directHotspot": {
       "requestedDefault": true,
-      "status": "design"
+      "preferencesPersisted": true,
+      "androidLocalOnlyHotspotStartStopBridge": true,
+      "androidRuntimePermissionPrompt": true,
+      "remoteAssociationImplemented": false,
+      "automaticSwitchImplemented": false
     },
     "prefer5GHz": {
       "requestedDefault": true,
-      "status": "design"
+      "preferencesPersisted": true,
+      "localStationCapabilitySnapshot": true,
+      "peerCapabilityNegotiationImplemented": false,
+      "bandEnforcement": false
+    },
+    "healthMonitor": {
+      "pureMonitorImplemented": true,
+      "unitTestsWritten": true,
+      "connectedToLiveTransfer": false,
+      "doesNotRestartOrDropFiles": true
     },
     "resumableTransfer": {
-      "status": "not-implemented"
-    },
-    "adaptiveRecovery": {
-      "status": "not-implemented"
+      "protocolAndOffsetImplementation": false,
+      "secureRecovery": false
     }
   },
   "build": {
-    "workflow": ".github/workflows/build_android_apk.yml",
-    "diagnosticBuild": "not-run",
+    "workflow": ".github/workflows/pro-android-diagnostics.yml",
+    "configured": true,
+    "pushTriggeredRunVerified": false,
+    "unitTests": "written-not-run",
+    "diagnosticApk": "not-verified",
     "finalApk": "not-built",
-    "deviceTests": "not-run"
+    "phoneToPhoneTests": "not-run"
   },
   "next": [
-    "Implement capability-aware policy and unit tests",
-    "Persist independent toggles with explicit staged statuses",
-    "Add Android capability bridge with OS permissions",
-    "Design session offset resume for both endpoints",
-    "Set up dedicated diagnostics workflow and review run"
+    "Verify GitHub Actions result and repair build or analyzer failures",
+    "Add authenticated peer capability exchange and prevent downgrade attacks",
+    "Add receiver Wi-Fi association with consent and interface-bound sockets",
+    "Integrate actual performance tracing and safely select transfer route",
+    "Implement safe resumable chunk protocol with offset, integrity verification and backoff",
+    "End-to-end two-phone Wi-Fi 2.4/5GHz, router and hotspot test"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
     "Never modify main",
     "No premature final APK claims",
     "Update restore docs and state after each work phase"
+  ],
+  "lastUpdated": "2026-11-21",
+  "latestCodeCommit": "6ad7e67a3da08e2bde396b86cdbd5bb7ba4dd759",
+  "implementedPaths": [
+    "app/lib/pro/transfer_policy.dart",
+    "app/lib/pro/pro_preferences.dart",
+    "app/lib/pro/pro_preferences_panel.dart",
+    "app/lib/pro/pro_wifi_capabilities.dart",
+    "app/lib/pro/pro_local_hotspot.dart",
+    "app/lib/pro/throughput_health.dart",
+    "app/android/app/src/main/kotlin/org/localsend/localsend_app/ProWifiCapabilities.kt",
+    "app/android/app/src/main/kotlin/org/localsend/localsend_app/ProLocalOnlyHotspot.kt",
+    "app/lib/pages/tabs/settings_tab.dart",
+    "app/lib/pages/tabs/send_tab.dart",
+    ".github/workflows/pro-android-diagnostics.yml"
   ]
 }
