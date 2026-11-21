@@ -95,6 +95,21 @@ impl LsHttpClient {
         Ok(client)
     }
 
+    /// Query experimental Pro capabilities from a peer only through the
+    /// existing certificate-pinned v2 HTTPS client. A legacy v2 server simply
+    /// returns None; v3 support is not implied by an unrelated API version.
+    pub async fn pro_capabilities(
+        &self,
+        protocol: model::discovery::ProtocolType,
+        ip: &str,
+        port: u16,
+    ) -> Result<Option<http::pro::ProCapabilitiesDto>, ClientError> {
+        match self {
+            LsHttpClient::V2(client) => client.pro_capabilities(protocol, ip, port).await,
+            LsHttpClient::V3(_) => Ok(None),
+        }
+    }
+
     pub async fn register(
         &self,
         protocol: model::discovery::ProtocolType,

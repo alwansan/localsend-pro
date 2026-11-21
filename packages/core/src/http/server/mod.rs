@@ -640,7 +640,7 @@ async fn handle_request_inner(mut req: Request<Incoming>) -> Result<Response<Box
         // Do not reveal capabilities on plaintext HTTP, and do not treat a
         // client without a peer certificate as a valid Pro participant.
         (&Method::GET, "/api/localsend/pro/v1/capabilities") => {
-            if !v2_enabled || client_info.cert_fingerprint().is_none() {
+            if !pro::eligible(v2_enabled, client_info.cert_fingerprint().is_some()) {
                 return Err(AppError::Status(StatusCode::NOT_FOUND));
             }
             Ok(pro::capabilities().into_response())

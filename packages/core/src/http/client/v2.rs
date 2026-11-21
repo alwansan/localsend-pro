@@ -79,7 +79,7 @@ impl LsHttpClientV2 {
         ip: &str,
         port: u16,
     ) -> Result<Option<ProCapabilitiesDto>, ClientError> {
-        if !self.peer_fingerprint_pinned || !matches!(protocol, ProtocolType::Https) {
+        if !can_probe_pro(protocol, self.peer_fingerprint_pinned) {
             return Ok(None);
         }
 
@@ -540,5 +540,22 @@ impl LsHttpClientV2 {
         writer.flush().await?;
 
         Ok(total_bytes)
+    }
+}
+
+fn can_probe_pro(protocol: ProtocolType, expected_peer_fingerprint_pinned: bool) -> bool {
+    expected_peer_fingerprint_pinned && matches!(protocol, ProtocolType::Https)
+}
+
+#[cfg(test)]
+mod pro_tests {
+    use super::{can_probe_pro, ProtocolType};
+
+    #[test]
+    fn pro_probe_requires_an_explicit_pinned_peer_and_https() {
+        assert!(can_probe_pro(ProtocolType::Https, true));
+        assert!(!can_probe_pro(ProtocolType::Https, false));
+        assert!(!can_probe_pro(ProtocolType::Http, true));
+        assert!(!can_probe_pro(ProtocolType::Http, false));
     }
 }
