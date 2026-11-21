@@ -5,8 +5,8 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-22",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P2 manual pinned-TLS Pro peer inspection live in Android UI, P4 offline checkpoint persisted; secure live transport not yet switched",
-  "status": "CI-tested-peer-inspection; latest ARM64 diagnostic-build-running",
+  "stage": "P4 verified single-isolate receiver store safeguards (44 Flutter tests); Android native file-description writer lease bridged but Android test pending",
+  "status": "partial CI-tested; native lease ARM64 build and phone-to-phone tests pending",
   "verified": {
     "repoWrite": true,
     "branchCreated": true,
@@ -66,7 +66,16 @@
       "privatePartialFileAndManifestImplemented": true,
       "checkpointCorruptionFailsClosed": true,
       "osPowerLossDurabilityVerified": false,
-      "liveEndpointAndAuthenticatedResume": false
+      "liveEndpointAndAuthenticatedResume": false,
+      "inIsolateExclusiveWriterGuard": true,
+      "partOrphanPreserved": true,
+      "failedCheckpointPoisonsHandle": true,
+      "concurrentFinalHashProtected": true,
+      "nativeAndroidFileLeaseImplemented": true,
+      "nativeAndroidFileLeaseIntegrated": true,
+      "nativeCrossIsolateLeaseVerifiedOnAndroid": false,
+      "nativeFlockRustTestCasesWritten": 2,
+      "automaticProcessRestartLeaseReleaseDesign": true
     },
     "peerNegotiation": {
       "rustMtlscertGatedCapabilitiesEndpoint": true,
@@ -91,14 +100,14 @@
     "workflow": ".github/workflows/pro-android-diagnostics.yml",
     "configured": true,
     "pushTriggeredRunVerified": true,
-    "unitTests": "39 Flutter tests passed on run 44950400113",
-    "diagnosticApk": "last verified success is 44947029359, prior to generated binding and manual peer UI; latest 44950400113 build not verified",
+    "unitTests": "44 Flutter Pro tests passed on run 44951142687",
+    "diagnosticApk": "older ARM64 APK confirmed success, native lease build pending run 44952326531",
     "finalApk": "not-built",
     "phoneToPhoneTests": "not-run",
     "workflowEnhancedForLiveIntegrationAnalysis": true,
     "workflowArtifactChecksumConfigured": true,
     "dartAnalyze": "success with 3 import-order informational lints; run 44950400113",
-    "proTestRunUrl": "https://github.com/alwansan/localsend-pro/actions/runs/44944767568",
+    "proTestRunUrl": "https://github.com/alwansan/localsend-pro/actions/runs/44951142687",
     "proTestJobId": 136969617732,
     "androidArm64JobId": 136987215583,
     "androidArm64JobStatusAtCheckpoint": "queued",
@@ -130,8 +139,8 @@
     },
     "workflowRustTestsConfigured": true,
     "rustFormattingFailureFromBaselineHandled": true,
-    "rustTests": "82 Rust lib + 8 TLS integration tests passed on run 44950400113",
-    "flutterTests": "39 passed on run 44950400113",
+    "rustTests": "82 Rust core + 8 pinned TLS integration passed on run 44951142687; native Rust flock test run pending",
+    "flutterTests": "44 passed on run 44951142687",
     "latestCodeTestRun": {
       "runId": 44950400113,
       "url": "https://github.com/alwansan/localsend-pro/actions/runs/44950400113",
@@ -143,21 +152,31 @@
       "androidArm64": "queued at test verification"
     },
     "latestBindingRun": {
-      "runId": 44949823398,
-      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44949823398",
-      "status": "success",
-      "commit": "8e0f82fd6de5e83c69ae263123f6d3dcef9d0b21",
-      "generatorVersion": "flutter_rust_bridge 2.12.0"
-    }
+      "runId": 44951796090,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44951796090",
+      "result": "success",
+      "publishedCommit": "8f4d4661c7f8e4051109e0b307b36e3f1808d5ce",
+      "generatedApi": "RsProFileLease acquireProFileLease and void release",
+      "dependencyLockCommitted": true
+    },
+    "newNativeLeaseCi": {
+      "runId": 44952326531,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44952326531",
+      "sourceCommit": "2821e30fa471ef3406c425933e0c5450211b599f",
+      "stateAtCheckpoint": "pending (queued behind earlier Android build)",
+      "expectedTests": "44 Flutter tests, 82 Rust core tests, 8 TLS integration tests, 2 native lease tests",
+      "androidArm64": "not verified"
+    },
+    "lastVerifiedAndroidApk": "run 44947029359, artifact 14724103202, older code; NOT native lease enabled"
   },
   "next": [
-    "Confirm final ARM64 build/artifact result of run 44950400113; do not claim it passed before job conclusion",
-    "Clean remaining three Dart import-order informational lints without changing runtime behavior",
-    "Add storage writer exclusivity and strict directory fsync before declaring power-loss resilient resume",
-    "Implement authenticated session-scoped transfer upgrade with receiver durable offset/query and chunk HTTP path; retain standard LocalSend fallback",
-    "Negotiate and transmit hotspot configuration only inside a consented certificate-pinned session, never discovery",
-    "Bind outbound Rust HTTP connection sockets only to Android user-approved Network; verify pinned TLS certificate after binding",
-    "Run device-to-device tests for 2.4GHz/5GHz LAN/hotspot, multi-GB, network drop and thermal throttling"
+    "Verify new CI 44952326531: native flock tests, Dart analyze, 44 Flutter tests and Android ARM64 artifact. Fix any actual compiler errors before user device test",
+    "Verify older run 44951142687 ARM64 result and artifact separately (it contains only in-isolate store guard, not native lease)",
+    "Ensure native writer lease really excludes competing Dart isolates and is released after process restart on Android devices",
+    "Add authenticated receiver session/offset query and bounded chunk stream endpoints with durable acknowledgement; no credentials in discovery",
+    "Add native fsync of parent directory after checkpoint rename and atomic final file publication, with corruption/fault injection tests",
+    "Bind Rust TCP sockets to approved Android Network and verify TLS peer certificate before any transfer route switch",
+    "Two-device benchmarks over LAN 2.4/5GHz and consented hotspot, dropout/restart tests, multi-GB validation"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
@@ -192,10 +211,16 @@
     "2026-11-22: manual Pro peer check added to Android DeviceDetails with HTTPS channel and 64-hex peer certificate fingerprint gating; does not switch transport.",
     "2026-11-22: build 44950400113 Pro tests and analyzer success; 39 Flutter tests and Rust 82 unit + 8 actual TLS integration all passed, Android ARM64 job queued at checkpoint.",
     "Three informational Dart analyzer issues: device_details_page.dart import ordering (new), send_provider.dart import ordering, transfer_telemetry_test.dart import ordering. Analyze stage succeeds.",
-    "Do not conflate last successful older APK artifact 14724103202 with latest UI and generated bridge code; only the latest build has them."
+    "Do not conflate last successful older APK artifact 14724103202 with latest UI and generated bridge code; only the latest build has them.",
+    "2026-11-22: e89cbc4 fixes nonempty orphan preservation, poisoned handle on checkpoint I/O error, in-isolate duplicate writer prevention and hash/close race. 5 added tests; Flutter 44/44 passed in run 44951142687.",
+    "2026-11-22: 8c670a8 adds Rust Linux/Android file-description flock(LOCK_EX|LOCK_NB) lease held until release/Drop with two Rust tests; never unlink production .lease file.",
+    "2026-11-22: faf52aa changes diagnostics cancel-in-progress=false and Android job to depend on both Flutter/Rust test jobs; avoids cancelling active APK builds on future push.",
+    "2026-11-22: generator run 44951445191 failed only because Cargo.lock changed unexpectedly; ec31be5 whitelisted/committed it; run 44951796090 succeeded, generated Dart/Rust file lease commit 8f4d466.",
+    "2026-11-22: commit 2821e30 integrates native Android lease in ProResumableFileStore.open/close with fail-closed acquisition and cleans 3 import-order lint notices. CI run 44952326531 pending; NOT tested on actual Android hardware.",
+    "Android native lease is an offline storage foundation; does not yet wire live file transfer, durable remote ACK or automatic hotspot route switching."
   ],
   "lastUpdated": "2026-11-22",
-  "latestCodeCommit": "6e6e3f3442bd868e8b5357fc4026d3ccfe9fce93",
+  "latestCodeCommit": "2821e30fa471ef3406c425933e0c5450211b599f",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
@@ -237,6 +262,11 @@
     "app/test/unit/pro/pro_peer_capabilities_test.dart",
     "app/lib/pages/device_details_page.dart",
     "packages/core/tests/v2_tls_pinning.rs",
-    ".github/workflows/pro-frb-bindings.yml"
+    ".github/workflows/pro-frb-bindings.yml",
+    "packages/localsend_isolates/rust/src/api/pro_file_lease.rs",
+    "packages/localsend_isolates/lib/rust/api/pro_file_lease.dart",
+    "packages/localsend_isolates/rust/src/api/mod.rs",
+    "packages/localsend_isolates/rust/Cargo.toml",
+    "Cargo.lock"
   ]
 }

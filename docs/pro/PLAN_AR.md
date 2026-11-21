@@ -106,3 +106,12 @@
 - [x] Run 44950400113: 39 Flutter unit tests passed و82 Rust unit tests + 8 Rust TLS integration tests passed؛ لا فشل أو crash مُثبت بهذه الاختبارات.
 - [~] APK ARM64 الأحدث Run 44950400113 job 136987215583 queued؛ اختبر نتيجته، لا تستعمل artifact الأقدم 14724103202 للتحقق من الشاشة الجديدة.
 - [ ] تنظيف 3 معلومات lint للاستيرادات؛ ثم إكمال full transport opt-in، socket binding، checkpoint concurrency & directory fsync، واجهة receiver confirmed offsets.
+
+## P4 — أمان التخزين متعدد الكُتّاب (2026-11-22)
+- [x] منع كاتبين داخل نفس Dart isolate؛ حفظ non-empty orphan .part بدلاً من مسحه؛ إيقاف الـhandle بعد فشل checkpoint I/O؛ guard final SHA against append/early close.
+- [x] Flutter 44/44 unit tests passing على Run 44951142687؛ Rust 82+8 TLS passing.
+- [x] Rust native `flock` lease per session/file + generated FRB (Run 44951796090 SUCCESS، commit 8f4d466) + Android-only acquire/release integration (commit 2821e30).
+- [x] إصلاح CI لإيقاف إلغاءات ARM64 السابقة: cancel-in-progress=false وAndroid needs both test jobs.
+- [~] Run 44952326531 pending للـ44 Dart + native Rust lease tests + ARM64 APK. لا تدّعي النجاح بلا conclusion.
+- [ ] Test two Android isolates with concurrent open, abnormal process termination and restart; include native fsync checkpoint directory & safe publish before release readiness.
+- [ ] Network session token/chunk endpoints and durable receiver ACK; per-socket Android Network binding and permission-driven hotspot transition.

@@ -72,3 +72,12 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 - [x] آخر ARM64 APK ناجح مثبت *أقدم* من الواجهة الجديدة: Run 44947029359، artifact ID `14724103202` (93,785,991 bytes ZIP) من commit `6d191f4`. ليس APK نهائي ولا يتضمن تبديلات النقل.
 - [ ] ما زال غير منفذ: automatic hotspot credentials negotiation, socket binding to selected Android Network, persistent authenticated chunk transfer endpoints, actual safe end-to-end resume, phone-to-phone benchmarks.
 - لا تدفع كوداً عادياً أثناء ARM64 build إن أمكن بسبب cancel-in-progress=true؛ تحديثات docs استخدم [skip ci].
+
+## Continue — 2026-11-22 — الاستئناف الآمن وقفل Android الأصلي
+- [x] مصدر `e89cbc467577321a96f329ab7499dc93bb7a260c`: حراسة كاتب واحد داخل Dart isolate، عدم حذف orphan .part غير مؤكد، جعل handle يفشل نهائياً بعد خطأ I/O checkpoint، ومنع close/append أثناء final SHA. **44/44 Flutter tests passed** في GitHub Actions Run 44951142687؛ Rust core 82 وTLS 8 ناجحة أيضاً في هذا التشغيل. APK الخاص به كان ما زال يبني وقت التسجيل.
+- [x] المصدر `8c670a8a4305978363f0d5bbae8b0885548e9c1a`: `RsProFileLease` native flock(LOCK_EX|LOCK_NB) على Android/Linux، lockfile دائم لا يُحذف، التحرير عند close/Drop أو crash، 2 Rust tests لتنافس fd/thread.
+- [x] المصدر `faf52aa81ff37963cf69ee533dfa177c85990e5a`: diagnostics `cancel-in-progress: false` وAndroid needs both Pro Flutter and Rust jobs.
+- [x] Rust Bridge generator `44951445191` فشل فقط بسبب تغيير Cargo.lock، ثم `ec31be51a2e9fa3f01201877c76c06f6ed5b1215` سمح بنشر lockfile، Run `44951796090` **SUCCESS** ونشر generated `RsProFileLease/acquireProFileLease/release` في `8f4d4661c7f8e4051109e0b307b36e3f1808d5ce`.
+- [x] مصدر `2821e30fa471ef3406c425933e0c5450211b599f`: Android `ProResumableFileStore.open` يحصل على native file-description lease قبل قراءة checkpoint، ويحرره عند close أو فشل open؛ إذا فشل الحصول عليه لا يتابع بكتابة غير مقفولة. ثلاث ملاحظات imports cleanup.
+- [~] **Run 44952326531** جديد على source 2821e30، حالته pending وقت checkpoint؛ تأكد من native Rust tests و44 Flutter tests وبناء ARM64 قبل القول إنه جاهز. آخر Android artifact مثبت قبل كل هذه الإضافات = ID 14724103202 من Run 44947029359.
+- [ ] غير مكتمل: power loss directory fsync، atomic final publish، remote session chunk API/offset ACK، socket binding، automatic hotspot/5GHz link switch، device-to-device Android tests. **لا APK نهائي ولا استئناف فعلي عبر الشبكة.**
