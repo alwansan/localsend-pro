@@ -6,6 +6,7 @@ pub mod http;
 pub mod logging;
 pub mod metadata;
 pub mod model;
+pub mod pro_file_lease;
 pub mod server;
 pub mod stream;
 pub mod webrtc;

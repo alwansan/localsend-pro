@@ -6,6 +6,8 @@ on:
       - feature/android-pro-fast-transfer
     paths:
       - packages/localsend_isolates/rust/src/api/http.rs
+      - packages/localsend_isolates/rust/src/api/pro_file_lease.rs
+      - packages/localsend_isolates/rust/src/api/mod.rs
       - .github/workflows/pro-frb-bindings.yml
   workflow_dispatch:
 
