@@ -88,3 +88,11 @@
 - [ ] ضمانات strict power-loss fsync + concurrent file lock + safe final rename.
 - [ ] تلقائي 5GHz/Hotspot مع Android Network-specific Rust binding + consent, ثم اختبار فعلي على هاتفين.
 - [ ] جعل CI لا يلغي تشغيل البناء بسبب commits خاصة بالوثائق؛ استعمل [skip ci] مؤقتاً.
+
+## تحديث متابعة — بروتوكول Rust وبناء Android 2026-11-21
+- [x] Android ARM64 diagnostic build ناجح من GitHub Actions 44944767568 (commit 00006b0) + 34 Dart unit tests؛ artifact 14723396847 (Debug غير نهائي).
+- [x] Pro Rust read-only capability endpoint (mTLS client certificate required) وعميل V2 pinned HTTPS-only؛ ترجيع None عند 404 للأجهزة القديمة؛ بروتوكول v2 الأصلي لم يتغير.
+- [x] Rust unit tests للـcapabilities والـHTTPS pin gating وURLs IPv4/IPv6؛ Workflow Rust test. تعديل نطاق formatter حتى لا يُدخل تنسيق كامل legacy في المرحلة.
+- [~] Run 44946218918 للشيفرة الجديدة ongoing؛ تأكد من Rust tests وAndroid build، وراجع النتائج قبل وصف أي Feature بأنه شغال.
+- [ ] FRB وتجارب capability discovery بين هاتفين مع TLS pinned identity وفشل آمن، ثم consent/network socket-specific binding.
+- [ ] Chunk resume protocol persistent ACK، واختبار إعادة الإرسال بعد توقف التطبيق والشبكة؛ آلية النقل الحالية لا تستخدم هذا المسار حتى الآن.

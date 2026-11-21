@@ -60,3 +60,10 @@ idle → negotiating → transferring → (degraded) → probing → recovering 
 - `verifyComplete`: stream SHA256 عبر File.openRead دون تحميل ملف كامل، ثم التحقق من الحجم والبصمة؛ لا يعمل publish نهائي؛ يحتاج atomic rename وحماية وجهة SAF.
 - حدود حالية: لا cross-process file lock، إعادة فتح مخزن متعدد الكتّاب غير معرّفة؛ Dart filesystem flush + rename لا يضمن strict power-loss durability دون fsync لدليل metadata على Android؛ لا تستخدمه على UI isolate للملفات الكبيرة.
 - اختبارات Pro نجحت 34 على Actions Run 44944767568، ولم يُثبت نجاح Android ARM64 debug build بعد.
+
+## Rust Pro capability API — 2026-11-21
+- الجديد `GET /api/localsend/pro/v1/capabilities`: route مستقل في `packages/core/src/http/server/mod.rs`, المخرجات JSON schema=1. لا يتاح إذا v2 disabled أو طلب من دون client TLS certificate. لم يعدّل الlegacy `/api/localsend/v2/`، ولا يغيّر سلوك ملفات المستخدم.
+- `http/pro.rs` يعلن pinnedTlsRequired=true وresumableUpload/hotspotCoordination/networkBoundUpload=false,maxChunkBytes=0 لأن الشبكة/استئناف البيانات **لم يكتمل**. لا تضمّن password/token/session data بأي إعلان عام.
+- `LsHttpClientV2.pro_capabilities` يرفض غير HTTPS أو client غير pinned، ثم يتصل عبر rustls reqwest المعتاد الحافظ لـTLS fingerprint؛ 404→None (legacy fallback)، الإعلان غير المدعوم→None. `LsHttpClient.pro_capabilities` يمرر V2 فقط، V3→None.
+- لم تُربط دوال Rust الجديدة بعد بـDart FRB ولا بمسار الإرسال، لذلك لا تدعي فعلية التفاوض بين الهاتفين.
+- Rustfmt CI أُصلح حتى يفحص ملفات Pro المعدلة فقط بدلاً من تغيير legacy/generated files. Rust unit tests تشتغل في Run 44946218918 حين تحديث الوثائق؛ Run سابق 44944767568 ناجح على commit أقدم.

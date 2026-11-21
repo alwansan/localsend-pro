@@ -5,8 +5,8 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-21",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P4 offline disk checkpoint recovery implemented, 34 Pro tests passed; live protocol wiring pending",
-  "status": "tested-offline-component-android-build-in-progress",
+  "stage": "P2 authenticated Pro capabilities endpoint in Rust published; P4 offline checkpoint tested; Android diagnostic build succeeded",
+  "status": "partial-tested-design; experimental live handshake and transfer not yet wired",
   "verified": {
     "repoWrite": true,
     "branchCreated": true,
@@ -67,6 +67,20 @@
       "checkpointCorruptionFailsClosed": true,
       "osPowerLossDurabilityVerified": false,
       "liveEndpointAndAuthenticatedResume": false
+    },
+    "peerNegotiation": {
+      "rustMtlscertGatedCapabilitiesEndpoint": true,
+      "requiresPinnedTlsOnClient": true,
+      "legacy404Fallback": true,
+      "schemaVersion": 1,
+      "advertisedLiveResume": false,
+      "advertisedHotspotCoordination": false,
+      "advertisedNetworkBoundUpload": false,
+      "rustClientWrapperImplemented": true,
+      "flutterRustBridgeIntegrated": false,
+      "runtimePeerNegotiationIntegrated": false,
+      "hotspotCredentialsExchange": false,
+      "newEndpointRustTests": "configured in CI; pending result"
     }
   },
   "build": {
@@ -74,7 +88,7 @@
     "configured": true,
     "pushTriggeredRunVerified": true,
     "unitTests": "34 passed on GitHub Actions run 44944767568",
-    "diagnosticApk": "in progress; not verified",
+    "diagnosticApk": "successful diagnostic APK from run 44944767568 (older source commit 00006b0); not a final release",
     "finalApk": "not-built",
     "phoneToPhoneTests": "not-run",
     "workflowEnhancedForLiveIntegrationAnalysis": true,
@@ -83,16 +97,38 @@
     "proTestRunUrl": "https://github.com/alwansan/localsend-pro/actions/runs/44944767568",
     "proTestJobId": 136969617732,
     "androidArm64JobId": 136969942311,
-    "androidArm64JobStatusAtCheckpoint": "in_progress"
+    "androidArm64JobStatusAtCheckpoint": "in_progress",
+    "lastSuccess": {
+      "runId": 44944767568,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44944767568",
+      "sourceCommit": "00006b079fbea776007555d85d86d8c59285f86a",
+      "dartAnalyze": "success",
+      "flutterTestsPassed": 34,
+      "androidArm64Debug": "success",
+      "artifactId": 14723396847,
+      "artifactName": "LocalSend-Pro-Android-arm64-DIAGNOSTIC",
+      "zipBytes": 93785397,
+      "artifactExpiresAt": "2026-12-05T20:23:25Z",
+      "doesNotContainLatestRustChanges": true
+    },
+    "newRustCi": {
+      "runId": 44946218918,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44946218918",
+      "headCommit": "8cee4d8802e02525362bfaf5d3b1b816b4b332a1",
+      "rustfmt": "passed (Rust tests running when checked)",
+      "rustTests": "in progress",
+      "androidArm64": "pending"
+    },
+    "workflowRustTestsConfigured": true,
+    "rustFormattingFailureFromBaselineHandled": true
   },
   "next": [
-    "Get final conclusion, logs and ARM64 artifact for run 44944767568 without cancelling it with a normal push",
-    "Add per-directory or cross-isolate exclusive file locking before wiring offline store into concurrent live transfer",
-    "Design authenticated capability negotiation and peer-bound session, avoid public discovery credentials",
-    "Add receiver offset/query API + sender chunk transfer on pinned TLS; wire isolated durable receiver store off the UI isolate",
-    "Implement Android approved Network socket binding for Rust HTTP connection, secure peer TLS verification before route switch",
-    "Add power-loss durability (native fsync of checkpoint directory) and verified atomic publish into destination",
-    "End-to-end Android test two devices WiFi 2.4/5 GHz router and LocalOnlyHotspot, large files, timeout/fallback"
+    "Verify Rust core tests and Android ARM64 result of run 44946218918; fix exact errors if failed",
+    "Expose authenticated Pro capabilities to Flutter through FRB codegen without bypassing certificate-pinned HTTP client",
+    "Add authenticated session-scoped transport upgrade negotiation (mutual opt-in, user consent, no hotspot passwords in discovery)",
+    "Integrate file-storage locking then implement receiver offset query, chunk upload and durable receipts over pinned TLS",
+    "Implement Android per-socket binding on the approved Network for Rust reqwest; verify server certificate and reachability before switching route",
+    "Test realistic data on 2 Android devices and prove no corruption across network stalls; no final APK until passed"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
@@ -115,10 +151,15 @@
     "Most earlier push-triggered Actions runs were cancelled due to concurrency cancel-in-progress=true and frequent commits.",
     "New ProResumableFileStore is offline only, writes .part and flushed checkpoint manifest with atomic same-dir rename and verifies every saved chunk on reopen; rejects unconfirmed bytes/corruption.",
     "File-mode storage is not bound to the live Rust transfer engine and strict power-loss durability needs fsync of containing directory.",
-    "2026-11-21 code commit 00006b079fbea776007555d85d86d8c59285f86a."
+    "2026-11-21 code commit 00006b079fbea776007555d85d86d8c59285f86a.",
+    "GitHub Actions run 44944767568 completed success including ARM64 debug artifact 14723396847 and 34 Flutter tests (on earlier 00006b0).",
+    "New Rust endpoint GET /api/localsend/pro/v1/capabilities is read-only mTLS-client-cert gated, with a pinned HTTPS-only Rust client query; 404 legacy fallback. Not yet used by Flutter, transfer engine still LocalSend v2.",
+    "Pro capability DTO v1 advertises resumableUpload=false, hotspotCoordination=false and networkBoundUpload=false; no hotspot secrets exposed.",
+    "Rust CI first run 44946132259 failed rustfmt only because of repository-wide baseline formatting debt; code fixes 8cee4d plus scoped check. New run 44946218918 is ongoing.",
+    "Do not cancel current newest CI run via frequent push; document updates use [skip ci]."
   ],
   "lastUpdated": "2026-11-21",
-  "latestCodeCommit": "00006b079fbea776007555d85d86d8c59285f86a",
+  "latestCodeCommit": "8cee4d8802e02525362bfaf5d3b1b816b4b332a1",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
@@ -143,6 +184,13 @@
     "app/lib/provider/network/send_provider.dart",
     "app/lib/pages/progress_page.dart",
     "app/lib/pro/resumable_file_store.dart",
-    "app/test/unit/pro/resumable_file_store_test.dart"
+    "app/test/unit/pro/resumable_file_store_test.dart",
+    "packages/core/src/http/pro.rs",
+    "packages/core/src/http/server/pro.rs",
+    "packages/core/src/http/mod.rs",
+    "packages/core/src/http/client/v2.rs",
+    "packages/core/src/http/client/mod.rs",
+    "packages/core/src/http/client/url.rs",
+    "packages/core/src/http/server/mod.rs"
   ]
 }

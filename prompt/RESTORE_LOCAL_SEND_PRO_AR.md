@@ -48,3 +48,11 @@
 - **نجح** Pro policy CI في https://github.com/alwansan/localsend-pro/actions/runs/44944767568: Dart analyze و**34 اختبار Flutter ناجح**، job 136969617732. كان Android ARM64 diagnostic job 136969942311 في_progress عند التسجيل؛ ارجع لنتيجته وlogs/artifacts. لا APK نهائي.
 - تحذير: cancel-in-progress=true يلغي التشغيل السابق عند نشر commits كثيرة. حافظ على تشغيل البناء؛ استخدم `[skip ci]` للوثائق ما دام ARM64 job جاري، وبعده أصلح الحاجة إلى cancels المتكررة.
 - التالي: أكمل result/build، ثم handshake موثّق TLS، Rust network-specific bind وreceiver offset/chunk protocol/ACK واستئناف كامل، تجارب هاتفين مع ملفات ضخمة.
+
+## نقطة الاستعادة — 2026-11-21، Rust capability API وAPK تشخيصي ناجح
+- المستودع alwansan/localsend-pro فرع الكتابة الحصري `feature/android-pro-fast-transfer`. آخر كود منشور commit `8cee4d8802e02525362bfaf5d3b1b816b4b332a1`؛ افحص HEAD قبل عمل أي تغيير.
+- **CI مثبت**: Run `44944767568` نجح كاملاً (Flutter analyze،34 اختبار Dart، Android ARM64 Debug APK). Artifact ID `14723396847` باسم `LocalSend-Pro-Android-arm64-DIAGNOSTIC` من Source commit `00006b0`، وليس آخر الكود/نسخة نهائية.
+- Rust Pro capabilities جديد: Endpoint `GET /api/localsend/pro/v1/capabilities` مقيّد mTLS، DTO v1، client pinned HTTPS، 404 legacy fallback. أعلِن فقط flags false للميزات التي لم تكتمل. لم يتم ربط Rust FRB بـFlutter بعد.
+- Rust CI run `44946132259` فشل formatter بسبب formatting debt ضمن legacy files؛ commit `8cee4d8` حلله بتعديل تنسيق الملفين المتأثرين وقصر Rustfmt، وبدأ run جديد `44946218918`. كان fmt ناجحاً وRust tests قيد التنفيذ عند تحديث الذاكرة؛ راجع conclusion والـlogs بدقة قبل المتابعة.
+- **المتبقي**: FRB exposing capability, secured peer handshake, hotspot consent & Network-specific Rust sockets, persistent chunk API/ACK، Android two-phone benchmark and full safe recovery. لا APK نهائي بعد.
+- منع بناءات متلاحقة: رسائل الوثائق `[skip ci]` حتى انتهاء Workflow الأحدث؛ لا تخمن نجاح CI.
