@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:localsend_app/pro/pro_preferences.dart';
+import 'package:localsend_app/pro/pro_wifi_capabilities.dart';
 import 'package:localsend_app/pro/transfer_policy.dart';
 
 /// Exposes saved policy preferences without pretending that an unfinished
@@ -15,6 +16,7 @@ class ProPreferencesPanel extends StatefulWidget {
 
 class _ProPreferencesPanelState extends State<ProPreferencesPanel> {
   late final Future<void> _ready = proPreferencesController.initialize();
+  late final Future<ProWifiSnapshot?> _radio = ProWifiCapabilities.read();
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +62,21 @@ class _ProPreferencesPanelState extends State<ProPreferencesPanel> {
                   value: settings.prefer5GHz,
                   onChanged: (enabled) => proPreferencesController.setPrefer5GHz(enabled),
                   dense: widget.compact,
+                ),
+                FutureBuilder<ProWifiSnapshot?>(
+                  future: _radio,
+                  builder: (context, radio) {
+                    final wifi = radio.data;
+                    if (wifi == null) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: Text(
+                        'Current Wi-Fi: ${wifi.currentBand} GHz • 5 GHz client: ${wifi.supports5GHzStation ? "yes" : "no"} • hotspot: ${wifi.supportsLocalOnlyHotspot ? "available" : "unavailable"}. '
+                        'Android determines the actual hotspot band.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
