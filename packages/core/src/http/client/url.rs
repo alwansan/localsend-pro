@@ -15,6 +15,7 @@ pub struct TargetUrl<'a> {
 pub enum ApiVersion {
     V2,
     V3,
+    ProV1,
 }
 
 impl<'a> TargetUrl<'a> {
@@ -35,6 +36,7 @@ impl<'a> TargetUrl<'a> {
             match self.version {
                 ApiVersion::V2 => "v2",
                 ApiVersion::V3 => "v3",
+                ApiVersion::ProV1 => "pro/v1",
             },
             self.path
         );
@@ -52,6 +54,25 @@ impl<'a> TargetUrl<'a> {
 #[cfg(test)]
 mod tests {
     use super::{ApiVersion, TargetUrl};
+
+    #[test]
+    fn test_pro_capabilities_url_for_ipv4_and_ipv6() {
+        for (host, expected) in [
+            ("192.168.8.1", "https://192.168.8.1:53317/api/localsend/pro/v1/capabilities"),
+            ("::1", "https://[::1]:53317/api/localsend/pro/v1/capabilities"),
+        ] {
+            let url = TargetUrl {
+                version: ApiVersion::ProV1,
+                protocol: "https",
+                host: host.to_string(),
+                port: 53317,
+                path: "/capabilities",
+                params: &[],
+            }
+            .to_string();
+            assert_eq!(url, expected);
+        }
+    }
 
     #[test]
     fn test_pin_survives_query_round_trip() {

@@ -2,6 +2,7 @@ pub mod common;
 mod connection_limit;
 pub mod internal;
 mod peer_ip;
+mod pro;
 pub mod v2;
 pub mod v3;
 pub mod web;
@@ -633,6 +634,16 @@ async fn handle_request_inner(mut req: Request<Incoming>) -> Result<Response<Box
         }
         (&Method::GET, "/api/localsend/v2/download") => {
             web::download(req, state, client_info).await
+        }
+        // Experimental Pro capability negotiation is a separate endpoint,
+        // never an extension of multicast discovery or legacy v2 upload.
+        // Do not reveal capabilities on plaintext HTTP, and do not treat a
+        // client without a peer certificate as a valid Pro participant.
+        (&Method::GET, "/api/localsend/pro/v1/capabilities") => {
+            if !v2_enabled || client_info.cert_fingerprint().is_none() {
+                return Err(AppError::Status(StatusCode::NOT_FOUND));
+            }
+            Ok(pro::capabilities().into_response())
         }
         (&Method::POST, "/api/localsend/v2/register") => {
             if !v2_enabled {

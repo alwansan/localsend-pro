@@ -5,6 +5,7 @@ use crate::http::dto_v2::{
     PrepareUploadResponseDtoV2, PrepareUploadResultV2, RegisterDtoV2, RegisterResponseDtoV2,
 };
 use crate::model::discovery::ProtocolType;
+use crate::http::pro::ProCapabilitiesDto;
 use futures_util::StreamExt;
 use reqwest::{Response, StatusCode};
 use tokio::io::AsyncWriteExt;
@@ -13,6 +14,7 @@ use tokio_util::sync::CancellationToken;
 /// HTTP client for LocalSend Protocol v2.2.
 pub struct LsHttpClientV2 {
     client: reqwest::Client,
+    peer_fingerprint_pinned: bool,
 }
 
 impl LsHttpClientV2 {
@@ -35,8 +37,10 @@ impl LsHttpClientV2 {
         expected_fingerprint: Option<String>,
         timeout: Option<std::time::Duration>,
     ) -> Result<Self, ClientError> {
+        let peer_fingerprint_pinned = expected_fingerprint.is_some();
         Ok(Self {
             client: super::create_reqwest_client(private_key, cert, expected_fingerprint, timeout)?,
+            peer_fingerprint_pinned,
         })
     }
 
@@ -56,7 +60,50 @@ impl LsHttpClientV2 {
             .redirect(reqwest::redirect::Policy::none())
             .build()?;
 
-        Ok(Self { client })
+        Ok(Self {
+            client,
+            peer_fingerprint_pinned: false,
+        })
+    }
+
+    /// Reads the other peer's experimental Pro capability advertisement.
+    ///
+    /// This request is never sent from an unpinned discovery client or over
+    /// HTTP. The existing reqwest/rustls verifier checks the server's pinned
+    /// certificate *before* any request is delivered. A 404 means legacy peer
+    /// and safely falls back to standard LocalSend. No credentials or file
+    /// metadata appear in this request or response.
+    pub async fn pro_capabilities(
+        &self,
+        protocol: ProtocolType,
+        ip: &str,
+        port: u16,
+    ) -> Result<Option<ProCapabilitiesDto>, ClientError> {
+        if !self.peer_fingerprint_pinned || !matches!(protocol, ProtocolType::Https) {
+            return Ok(None);
+        }
+
+        let url = TargetUrl {
+            version: ApiVersion::ProV1,
+            protocol: "https",
+            host: ip.to_string(),
+            port,
+            path: "/capabilities",
+            params: &[],
+        }
+        .to_string();
+        let response = self.client.get(&url).send().await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        if response.status() != StatusCode::OK {
+            return response.into_error().await;
+        }
+        let body = response.json::<ProCapabilitiesDto>().await?;
+        if !body.is_safe_to_negotiate() {
+            return Ok(None);
+        }
+        Ok(Some(body))
     }
 
     /// Registers with another device for discovery.
