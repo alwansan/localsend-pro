@@ -64,3 +64,11 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 - Run 44946218918: `pro-rust` job 136974049811 **نجح**: Rustfmt المخصص + `cargo test -p localsend --features http --lib` = **82 tests passed, 0 failed**. من ضمنها `http::pro::tests` و`http::server::pro::tests` و`http::client::v2::pro_tests`.
 - `pro-unit` job 136974049953 **نجح** (Flutter analyzer/tests). ARM64 job 136974325851 ظل قيد التشغيل عند تسجيل هذه المعلومة.
 - احفظ آخر مصدر كود 8cee4d8 وdocs HEAD الفعلي؛ لا تخلط build الأقدم الناجح 44944767568 بمصدر Rust الجديد. لا تعلن APK النهائي.
+
+## Continue 2026-11-22 — اكتمل FRB/manual peer probe (بدون تبديل النقل)
+- [x] أصلح CI generator missing rustfmt في commit `5e33e3d41c21a30bf60e8b1ecd671284b2b323a0`؛ Run 44949823398 **SUCCESS** ونشر ملفات Flutter–Rust المولّدة آلياً في commit `8e0f82fd6de5e83c69ae263123f6d3dcef9d0b21`. `RsHttpClient.proCapabilities` و`RsProCapabilities` موجودان في Dart الآن.
+- [x] commit `6e6e3f3442bd868e8b5357fc4026d3ccfe9fce93`: `ProPeerCapabilitiesPanel` على Device Details Android، manual Check عبر قناة HTTPS مثبتة شهادة TLS من الهوية المعروفة، لا Hotspot أو transfer switch. مع `selectProCapabilityChannel` و5 unit tests، و2 TLS integration tests على خادم Rust فعلي.
+- [x] Run 44950400113: Rust core **82 passed** + TLS integration **8 passed** (90 إجمالاً)، Flutter **39 passed**، Dart analyzer ناجح مع ثلاث informational lints تخص ترتيب imports. **ARM64 diagnostic job 136987215583 كان queued عند تسجيل الحالة**؛ افحص نهايته قبل القول APK ناجح على هذا commit.
+- [x] آخر ARM64 APK ناجح مثبت *أقدم* من الواجهة الجديدة: Run 44947029359، artifact ID `14724103202` (93,785,991 bytes ZIP) من commit `6d191f4`. ليس APK نهائي ولا يتضمن تبديلات النقل.
+- [ ] ما زال غير منفذ: automatic hotspot credentials negotiation, socket binding to selected Android Network, persistent authenticated chunk transfer endpoints, actual safe end-to-end resume, phone-to-phone benchmarks.
+- لا تدفع كوداً عادياً أثناء ARM64 build إن أمكن بسبب cancel-in-progress=true؛ تحديثات docs استخدم [skip ci].

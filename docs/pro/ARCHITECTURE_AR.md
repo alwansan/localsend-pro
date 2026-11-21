@@ -67,3 +67,9 @@ idle → negotiating → transferring → (degraded) → probing → recovering 
 - `LsHttpClientV2.pro_capabilities` يرفض غير HTTPS أو client غير pinned، ثم يتصل عبر rustls reqwest المعتاد الحافظ لـTLS fingerprint؛ 404→None (legacy fallback)، الإعلان غير المدعوم→None. `LsHttpClient.pro_capabilities` يمرر V2 فقط، V3→None.
 - لم تُربط دوال Rust الجديدة بعد بـDart FRB ولا بمسار الإرسال، لذلك لا تدعي فعلية التفاوض بين الهاتفين.
 - Rustfmt CI أُصلح حتى يفحص ملفات Pro المعدلة فقط بدلاً من تغيير legacy/generated files. Rust unit tests تشتغل في Run 44946218918 حين تحديث الوثائق؛ Run سابق 44944767568 ناجح على commit أقدم.
+
+## Bridge/UI connectivity — 2026-11-22
+- توليد واجهات Flutter–Rust يتم عبر `flutter_rust_bridge_codegen 2.12.0` و`.github/workflows/pro-frb-bindings.yml`، وليس بكتابة `lib/rust/frb_generated.dart` أو `rust/src/frb_generated.rs` يدوياً. عُولج نقص rustfmt في CI؛ أُنتج commit 8e0f82f، Run 44949823398 ناجح.
+- `RsHttpClient.proCapabilities` يرجع `RsProCapabilities?` عبر pinned reqwest Rust TLS، يرفض HTTP أو client ليس له peer fingerprint؛ يرد None عند 404 legacy. الـDTO ما زال يعطي flags false للـlive resume/hotspot/network bound.
+- `app/lib/pro/pro_peer_capabilities.dart` يختار قناة HTTPS غير فاشلة فقط عند وجود 64-char SHA fingerprint صالح؛ `pro_peer_capabilities_panel.dart` يعرض **Manual Check** في Device Details Android، لا يغير مسار النقل/الشبكة، يمنع عرض استجابة طلب لجهاز قديم بعد تغيير widget.
+- اختبارات Rust `v2_tls_pinning.rs` زيدت بفحص متماثل حقيقي TLS وقيد mTLS حتى مع WebMode enabled، ومرّت: 8 integration + 82 lib. Flutter unit: 39 passed في Run 44950400113. لا تعادل هذا باكتمال النقل بين هاتفين.

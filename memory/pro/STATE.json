@@ -3,10 +3,10 @@
   "repo": "alwansan/localsend-pro",
   "baseBranch": "main",
   "workingBranch": "feature/android-pro-fast-transfer",
-  "date": "2026-11-21",
+  "date": "2026-11-22",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P2 Rust mTLS capabilities tested (82/82); P4 offline resume store tested (34 Flutter); Android ARM64 newest build pending",
-  "status": "partial-tested-design; experimental live handshake and transfer not yet wired",
+  "stage": "P2 manual pinned-TLS Pro peer inspection live in Android UI, P4 offline checkpoint persisted; secure live transport not yet switched",
+  "status": "CI-tested-peer-inspection; latest ARM64 diagnostic-build-running",
   "verified": {
     "repoWrite": true,
     "branchCreated": true,
@@ -77,39 +77,44 @@
       "advertisedHotspotCoordination": false,
       "advertisedNetworkBoundUpload": false,
       "rustClientWrapperImplemented": true,
-      "flutterRustBridgeIntegrated": false,
-      "runtimePeerNegotiationIntegrated": false,
+      "flutterRustBridgeIntegrated": true,
+      "runtimePeerNegotiationIntegrated": "manual-read-only (not transfer negotiation)",
       "hotspotCredentialsExchange": false,
-      "newEndpointRustTests": "configured in CI; pending result"
+      "newEndpointRustTests": "82 Rust unit tests plus 8 TLS integration tests passed in Actions 44950400113",
+      "manualRuntimePeerProbeImplemented": true,
+      "automaticTransferUpgrade": false,
+      "generatedBindingsCommitted": true,
+      "manualProbeRejectsUnpinnedAndPlaintext": true
     }
   },
   "build": {
     "workflow": ".github/workflows/pro-android-diagnostics.yml",
     "configured": true,
     "pushTriggeredRunVerified": true,
-    "unitTests": "34 passed on GitHub Actions run 44944767568",
-    "diagnosticApk": "successful diagnostic APK from run 44944767568 (older source commit 00006b0); not a final release",
+    "unitTests": "39 Flutter tests passed on run 44950400113",
+    "diagnosticApk": "last verified success is 44947029359, prior to generated binding and manual peer UI; latest 44950400113 build not verified",
     "finalApk": "not-built",
     "phoneToPhoneTests": "not-run",
     "workflowEnhancedForLiveIntegrationAnalysis": true,
     "workflowArtifactChecksumConfigured": true,
-    "dartAnalyze": "success in run 44946218918",
+    "dartAnalyze": "success with 3 import-order informational lints; run 44950400113",
     "proTestRunUrl": "https://github.com/alwansan/localsend-pro/actions/runs/44944767568",
     "proTestJobId": 136969617732,
-    "androidArm64JobId": 136969942311,
-    "androidArm64JobStatusAtCheckpoint": "in_progress",
+    "androidArm64JobId": 136987215583,
+    "androidArm64JobStatusAtCheckpoint": "queued",
     "lastSuccess": {
-      "runId": 44944767568,
-      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44944767568",
-      "sourceCommit": "00006b079fbea776007555d85d86d8c59285f86a",
+      "runId": 44947029359,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44947029359",
+      "sourceCommit": "6d191f4b3f6748d2bf6619174c06cb5fb17b7e7d",
       "dartAnalyze": "success",
       "flutterTestsPassed": 34,
+      "rustCoreTestsPassed": 82,
       "androidArm64Debug": "success",
-      "artifactId": 14723396847,
+      "artifactId": 14724103202,
       "artifactName": "LocalSend-Pro-Android-arm64-DIAGNOSTIC",
-      "zipBytes": 93785397,
-      "artifactExpiresAt": "2026-12-05T20:23:25Z",
-      "doesNotContainLatestRustChanges": true
+      "zipBytes": 93785991,
+      "artifactExpiresAt": "2026-12-05T20:49:52Z",
+      "doesNotContainLatestManualPeerUI": true
     },
     "newRustCi": {
       "runId": 44946218918,
@@ -125,15 +130,34 @@
     },
     "workflowRustTestsConfigured": true,
     "rustFormattingFailureFromBaselineHandled": true,
-    "rustTests": "82 passing in run 44946218918"
+    "rustTests": "82 Rust lib + 8 TLS integration tests passed on run 44950400113",
+    "flutterTests": "39 passed on run 44950400113",
+    "latestCodeTestRun": {
+      "runId": 44950400113,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44950400113",
+      "commit": "6e6e3f3442bd868e8b5357fc4026d3ccfe9fce93",
+      "flutterTestsPassed": 39,
+      "rustCoreTestsPassed": 82,
+      "rustTlsIntegrationTestsPassed": 8,
+      "flutterAnalyzer": "success, 3 informational import-order issues",
+      "androidArm64": "queued at test verification"
+    },
+    "latestBindingRun": {
+      "runId": 44949823398,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44949823398",
+      "status": "success",
+      "commit": "8e0f82fd6de5e83c69ae263123f6d3dcef9d0b21",
+      "generatorVersion": "flutter_rust_bridge 2.12.0"
+    }
   },
   "next": [
-    "Verify Rust core tests and Android ARM64 result of run 44946218918; fix exact errors if failed",
-    "Expose authenticated Pro capabilities to Flutter through FRB codegen without bypassing certificate-pinned HTTP client",
-    "Add authenticated session-scoped transport upgrade negotiation (mutual opt-in, user consent, no hotspot passwords in discovery)",
-    "Integrate file-storage locking then implement receiver offset query, chunk upload and durable receipts over pinned TLS",
-    "Implement Android per-socket binding on the approved Network for Rust reqwest; verify server certificate and reachability before switching route",
-    "Test realistic data on 2 Android devices and prove no corruption across network stalls; no final APK until passed"
+    "Confirm final ARM64 build/artifact result of run 44950400113; do not claim it passed before job conclusion",
+    "Clean remaining three Dart import-order informational lints without changing runtime behavior",
+    "Add storage writer exclusivity and strict directory fsync before declaring power-loss resilient resume",
+    "Implement authenticated session-scoped transfer upgrade with receiver durable offset/query and chunk HTTP path; retain standard LocalSend fallback",
+    "Negotiate and transmit hotspot configuration only inside a consented certificate-pinned session, never discovery",
+    "Bind outbound Rust HTTP connection sockets only to Android user-approved Network; verify pinned TLS certificate after binding",
+    "Run device-to-device tests for 2.4GHz/5GHz LAN/hotspot, multi-GB, network drop and thermal throttling"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
@@ -163,10 +187,15 @@
     "Rust CI first run 44946132259 failed rustfmt only because of repository-wide baseline formatting debt; code fixes 8cee4d plus scoped check. New run 44946218918 is ongoing.",
     "Do not cancel current newest CI run via frequent push; document updates use [skip ci].",
     "Confirmed Rust HTTP core 82 tests passed, 0 failed, 0 ignored in job 136974049811 on run 44946218918.",
-    "Confirmed Pro Flutter policy job 136974049953 succeeded on new Rust commit 8cee4d8; latest Android diagnostic build still in progress."
+    "Confirmed Pro Flutter policy job 136974049953 succeeded on new Rust commit 8cee4d8; latest Android diagnostic build still in progress.",
+    "2026-11-22: old FRB generate run 44947029439 failed because rustfmt component missing; fix 5e33e3d installed component; new generator run 44949823398 succeeded, published binding commit 8e0f82fd.",
+    "2026-11-22: manual Pro peer check added to Android DeviceDetails with HTTPS channel and 64-hex peer certificate fingerprint gating; does not switch transport.",
+    "2026-11-22: build 44950400113 Pro tests and analyzer success; 39 Flutter tests and Rust 82 unit + 8 actual TLS integration all passed, Android ARM64 job queued at checkpoint.",
+    "Three informational Dart analyzer issues: device_details_page.dart import ordering (new), send_provider.dart import ordering, transfer_telemetry_test.dart import ordering. Analyze stage succeeds.",
+    "Do not conflate last successful older APK artifact 14724103202 with latest UI and generated bridge code; only the latest build has them."
   ],
-  "lastUpdated": "2026-11-21",
-  "latestCodeCommit": "8cee4d8802e02525362bfaf5d3b1b816b4b332a1",
+  "lastUpdated": "2026-11-22",
+  "latestCodeCommit": "6e6e3f3442bd868e8b5357fc4026d3ccfe9fce93",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
@@ -198,6 +227,16 @@
     "packages/core/src/http/client/v2.rs",
     "packages/core/src/http/client/mod.rs",
     "packages/core/src/http/client/url.rs",
-    "packages/core/src/http/server/mod.rs"
+    "packages/core/src/http/server/mod.rs",
+    "packages/localsend_isolates/rust/src/api/http.rs",
+    "packages/localsend_isolates/lib/rust/api/http.dart",
+    "packages/localsend_isolates/rust/src/frb_generated.rs",
+    "packages/localsend_isolates/lib/rust/frb_generated.dart",
+    "app/lib/pro/pro_peer_capabilities.dart",
+    "app/lib/pro/pro_peer_capabilities_panel.dart",
+    "app/test/unit/pro/pro_peer_capabilities_test.dart",
+    "app/lib/pages/device_details_page.dart",
+    "packages/core/tests/v2_tls_pinning.rs",
+    ".github/workflows/pro-frb-bindings.yml"
   ]
 }

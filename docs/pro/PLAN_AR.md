@@ -99,3 +99,10 @@
 
 - [x] CI الأحدث 44946218918 Rustfmt scoped + Rust HTTP core **82/82 passed**، وكذلك Flutter Pro unit job نجح.
 - [~] ARM64 job 136974325851 من نفس التشغيل لم يكن قد انتهى عند توثيق النتيجة؛ تأكد منه قبل اختبار APK على الهاتف.
+
+## تقدم 2026-11-22 — Flutter-Rust Bridge + manual peer check
+- [x] إصلاح rustfmt في FRB generator، نجاح Run 44949823398، نشر generated bindings commit 8e0f82f.
+- [x] إضافة Android Device Details manual Pro compatibility check مع pinned HTTPS، واختيار قناة صالحة، عرض advertised flags فقط. الطرف legacy يرجع إلى النقل المعتاد؛ لا يغيّر hotspot أو النقل.
+- [x] Run 44950400113: 39 Flutter unit tests passed و82 Rust unit tests + 8 Rust TLS integration tests passed؛ لا فشل أو crash مُثبت بهذه الاختبارات.
+- [~] APK ARM64 الأحدث Run 44950400113 job 136987215583 queued؛ اختبر نتيجته، لا تستعمل artifact الأقدم 14724103202 للتحقق من الشاشة الجديدة.
+- [ ] تنظيف 3 معلومات lint للاستيرادات؛ ثم إكمال full transport opt-in، socket binding، checkpoint concurrency & directory fsync، واجهة receiver confirmed offsets.

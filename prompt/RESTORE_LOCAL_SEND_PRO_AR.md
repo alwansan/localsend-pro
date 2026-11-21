@@ -61,3 +61,11 @@
 - 82 Rust tests PASSED وRustfmt PASSED في Run 44946218918 (job 136974049811). Flutter pro-unit PASSED أيضاً (job 136974049953). Android ARM64 job 136974325851 قيد البناء عند آخر فحص.
 - بناء Debug قديم ناجح: Run 44944767568، artifact 14723396847 من commit 00006b0؛ Rust Pro endpoint جديد من commit 8cee4d8 لا تدخل ضمن ذلك APK القديم.
 - ممنوع إيقاف أحدث CI بcommits عادية؛ التوثيق/الذاكرة فقط [skip ci].
+
+## متابعة جلسة 2026-11-22 — HEAD source 6e6e3f3 (تحقق من HEAD الحي)
+- Repo `alwansan/localsend-pro`؛ write branch `feature/android-pro-fast-transfer` فقط؛ ممنوع تعديل main. آخر مصدر كود `6e6e3f3442bd868e8b5357fc4026d3ccfe9fce93`، HEAD الوثائق قد يكون أحدث.
+- أصلح missing rustfmt في مولد FRB بـcommit `5e33e3d`، Run `44949823398` نجح وcommit `8e0f82f` أنشأ generated Flutter/Rust bindings. لا تعدل generated files يدوياً.
+- كود جديد: `pro_peer_capabilities.dart` + `pro_peer_capabilities_panel.dart` + Android `device_details_page.dart`: زر Check يدوي يتصل إلى `RsHttpClient.proCapabilities` عبر pinned HTTPS، مع fallback للlegacy وإعلان flags فقط، دون تغيير route أو نقل الملفات أو hotspot credential exchange.
+- CI آخر Source Run `44950400113`: **39 Flutter tests PASSED**, **82 Rust core + 8 TLS integration PASSED**؛ Dart analyzer passed مع 3 ملاحظات ترتيب imports فقط. ARM64 job `136987215583` لم تؤكد نتيجته بعد وقت هذا checkpoint؛ افحصها أولاً في الجولة القادمة.
+- Last verified Android diagnostic artifact *أقدم* من الشاشة الجديدة: `14724103202` من Run `44947029359` (source 6d191f4). لا final APK أو live resume.
+- الأولويات التالية: فحص Android build الجديد، إزالة ترتيب import notices، storage lock/fsync، real receiver chunk/offset durable ACK endpoints behind TLS and session tokens، Android Network socket binding/hotspot user consent، ثم اختبارات هاتفين على LAN 2.4/5 GHz.
