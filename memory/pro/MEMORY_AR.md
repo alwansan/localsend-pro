@@ -85,3 +85,11 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 ### تدقيق CI الأحدث — 2026-11-22
 - Run `44952326531`: Rust job `136993136484` **SUCCESS**: 2 native flock lease tests + 82 Rust lib + 8 real TLS = 92 passing, 0 failures. Flutter job `136993136854` **SUCCESS**: 44 tests passed وDart analyzer `No issues found!`. أحدث ARM64 job `136993506186` قيد البناء وقت توثيق النتائج.
 - Run `44951142687` السابق **SUCCESS** وAndroid diagnostic artifact ID `14725669490` (ZIP 93,847,409 bytes) مبني من source `e89cbc4` ولا يضم Rust native lease.
+
+## Continue 2026-11-22 — fsync + authenticated local resume offset
+- [x] Android native lease build **SUCCESS** Run [44952326531](https://github.com/alwansan/localsend-pro/actions/runs/44952326531) on commit `2821e30`: 44 Flutter tests + 92 Rust tests, ARM64 diagnostic artifact `14726702057` ZIP 93,865,523 bytes. لا يتضمن fsync الجديد ولا auth gate.
+- [x] `85e6e702`: Rust `RsProFileLease.sync_checkpoint_directory` يستعمل `fsync` على app-private parent directory بعد `pending -> checkpoint.json` rename مع قفل حي؛ يرفض released lease أو symlink. 4 native Rust tests + 82 core + 8 TLS = **94 Rust tests pass** Run 44953715009. Bridge generator Run 44953715002 **SUCCESS**, published `fb25ea6`, Dart exposes `syncCheckpointDirectory()`.
+- [x] `da0b601f`: Android `ProResumableFileStore._publishCheckpoint` يستدعي native directory fsync قبل `confirmDurableWrite`، فشل fsync يوقف ACK ويُسمّم handle حتى إعادة open/replay. `canReportVerifiedOffset` يمنع تقرير offset أثناء busy/close.
+- [x] `da0b601f`: `ProReceiverSessionGate` محلي فقط: يربط verified TLS peer certificate fingerprint مع session ID + file ID + expected complete SHA256 وper-file secret token hashed in memory؛ يرفض طلبات غير مفوضة ولا يعطي offset أو ACK. 6 Flutter tests جديدة **نتيجتها بعد غير مؤكدة**.
+- [x] `75eff160`: independent `.github/workflows/pro-fast-tests.yml` يفصل الاختبارات السريعة عن انتظار APK؛ CI Run `44954233385` قيد الفحص، ومنفصل عن build القديم.
+- [ ] لم يُنشأ endpoint شبكي لاستعلام offset، ولا نقل chunks، ولا fsync Android power-loss real phone test، ولا نشر ملف نهائي ذري، ولا إكمال hotspot/band selection. Flags تبقى false.

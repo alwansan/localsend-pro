@@ -82,3 +82,12 @@ idle → negotiating → transferring → (degraded) → probing → recovering 
 - هذا قفل تخزين محلي فقط: لم يتم دمجه بعميل/خادم LocalSend v2 واستئناف نقل الشبكة أو ضمان power loss fsync/directory publishing.
 
 - CI verification Run 44952326531: native flock test cases 2 passed, core Rust 82 passed, pinned TLS 8 passed, Flutter Pro 44 passed, Dart analyzer No issues found. Android ARM64 artifact لم يثبت بعد.
+
+## Durable checkpoint commit protocol (2026-11-22)
+1. Only one active writer holds native Rust `flock` lease for canonical app-private session/file-derived basename; never delete lock inode in production.
+2. Incoming chunk is validated against current local expected offset and chunk SHA256, then appended to .part; bytes flushed and file closed.
+3. Replacement checkpoint manifest is written and flushed to .checkpoint.pending, then renamed atomically to .checkpoint.json.
+4. NEW Android-only call `RsProFileLease.syncCheckpointDirectory()` fsyncs the parent directory FD held independently, while native writer lease is live. Only after success may ledger.confirmDurableWrite publish local confirmedOffset. If sync throws, store poisoned; next reopen verifies manifest and .part hashes instead of trusting ambiguous ACK.
+5. `ProReceiverSessionGate` (transport-independent) only emits verifiedStatus or calls append after verified presented TLS fingerprint, session+file ID, expected total SHA256 and high-entropy per-file secret. Secret stored only as SHA256 digest in memory, compared without early exit; future Rust endpoint must supply actual client cert fingerprint from TLS context, never an HTTP field. Absent authorization returns null (no existence/offset oracle).
+6. CRITICAL: This is NOT yet live network resumption or full crash-proof publication. Android fsync still needs physical forced-crash validation; final save path publication needs atomic rename and parent-dir fsync; upload endpoint to be built separately and capabilities.resumableUpload remains false.
+- Rust tests: native 4, core 82, TLS integration 8 passed in Run 44953715009. Independent quick CI fast tests workflow in commit 75eff160, Run 44954233385 pending.

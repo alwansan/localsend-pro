@@ -5,8 +5,8 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-22",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P4 verified single-isolate receiver store safeguards (44 Flutter tests); Android native file-description writer lease bridged but Android test pending",
-  "status": "partial CI-tested; native lease ARM64 build and phone-to-phone tests pending",
+  "stage": "P4 Android native checkpoint-directory fsync barrier integrated with receiver file store; authenticated local resume offset gate added, not yet network wired",
+  "status": "native fsync Rust tests passed; latest Dart auth gate/Android build CI pending, device testing pending",
   "verified": {
     "repoWrite": true,
     "branchCreated": true,
@@ -76,7 +76,19 @@
       "nativeCrossIsolateLeaseVerifiedOnAndroid": false,
       "nativeFlockRustTestCasesWritten": 2,
       "automaticProcessRestartLeaseReleaseDesign": true,
-      "nativeFlockRustTestsPassedLinux": true
+      "nativeFlockRustTestsPassedLinux": true,
+      "nativeDirectoryFsyncApiImplemented": true,
+      "nativeDirectoryFsyncFrbGenerated": true,
+      "nativeDirectoryFsyncIntegratedAndroid": true,
+      "nativeDirectoryFsyncNativeTestsPassed": 2,
+      "receiverAuthGateImplemented": true,
+      "receiverAuthGateBindsTlsFingerprintSessionFileAndDigest": true,
+      "receiverTokenDigestConstantWorkCompare": true,
+      "localVerifiedResumeStatusImplemented": true,
+      "receiverAuthGateTestsWritten": 6,
+      "receiverAuthGateTestsPassed": false,
+      "localVerifiedOffsetOnlyWhenIdle": true,
+      "proResumeUrlEndpointEnabled": false
     },
     "peerNegotiation": {
       "rustMtlscertGatedCapabilitiesEndpoint": true,
@@ -101,8 +113,8 @@
     "workflow": ".github/workflows/pro-android-diagnostics.yml",
     "configured": true,
     "pushTriggeredRunVerified": true,
-    "unitTests": "44 Flutter tests passed in run 44952326531",
-    "diagnosticApk": "verified ARM64 diagnostic APK from run 44951142687 (older source e89cbc4) with artifact 14725669490; latest native lease ARM64 run 44952326531 still building",
+    "unitTests": "44 Flutter tests passed 44952326531; newer auth gate 6 tests pending",
+    "diagnosticApk": "success 44952326531, source 2821e30, artifact 14726702057, Android native lease included, no parent-directory fsync or auth gate",
     "finalApk": "not-built",
     "phoneToPhoneTests": "not-run",
     "workflowEnhancedForLiveIntegrationAnalysis": true,
@@ -113,18 +125,22 @@
     "androidArm64JobId": 136987215583,
     "androidArm64JobStatusAtCheckpoint": "queued",
     "lastSuccess": {
-      "runId": 44951142687,
-      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44951142687",
-      "sourceCommit": "e89cbc467577321a96f329ab7499dc93bb7a260c",
+      "runId": 44952326531,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44952326531",
+      "sourceCommit": "2821e30fa471ef3406c425933e0c5450211b599f",
+      "dartAnalyze": "No issues found",
       "flutterTestsPassed": 44,
+      "nativeLeaseRustTestsPassed": 2,
       "rustCoreTestsPassed": 82,
       "rustTlsIntegrationTestsPassed": 8,
       "androidArm64Debug": "success",
-      "artifactId": 14725669490,
+      "artifactId": 14726702057,
       "artifactName": "LocalSend-Pro-Android-arm64-DIAGNOSTIC",
-      "zipBytes": 93847409,
-      "artifactExpiresAt": "2026-12-05T21:36:40Z",
-      "doesNotContainNativeLease": true
+      "zipBytes": 93865523,
+      "artifactExpiresAt": "2026-12-05T21:51:33Z",
+      "includesNativeFileLease": true,
+      "includesDirectoryFsync": false,
+      "includesLocalAuthGate": false
     },
     "newRustCi": {
       "runId": 44946218918,
@@ -153,20 +169,19 @@
       "androidArm64": "queued at test verification"
     },
     "latestBindingRun": {
-      "runId": 44951796090,
-      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44951796090",
+      "runId": 44953715002,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44953715002",
       "result": "success",
-      "publishedCommit": "8f4d4661c7f8e4051109e0b307b36e3f1808d5ce",
-      "generatedApi": "RsProFileLease acquireProFileLease and void release",
-      "dependencyLockCommitted": true
+      "publishedCommit": "fb25ea6b174ee697681712cf4b5b53f1cfe2b14c",
+      "generatedApi": "RsProFileLease.syncCheckpointDirectory()"
     },
     "newNativeLeaseCi": {
       "runId": 44952326531,
       "url": "https://github.com/alwansan/localsend-pro/actions/runs/44952326531",
       "sourceCommit": "2821e30fa471ef3406c425933e0c5450211b599f",
-      "stateAtCheckpoint": "Rust and Flutter tests completed success, Android ARM64 build in progress",
+      "stateAtCheckpoint": "COMPLETED SUCCESS",
       "expectedTests": "44 Flutter tests, 82 Rust core tests, 8 TLS integration tests, 2 native lease tests",
-      "androidArm64": "in progress as of checkpoint",
+      "androidArm64": "SUCCESS",
       "nativeRustLeaseTestsPassed": 2,
       "rustCoreTestsPassed": 82,
       "rustTlsIntegrationTestsPassed": 8,
@@ -174,18 +189,39 @@
       "dartAnalyze": "No issues found",
       "nativeRustJobId": 136993136484,
       "flutterJobId": 136993136854,
-      "androidJobId": 136993506186
+      "androidJobId": 136993506186,
+      "artifactId": 14726702057
     },
-    "lastVerifiedAndroidApk": "run 44947029359, artifact 14724103202, older code; NOT native lease enabled"
+    "lastVerifiedAndroidApk": "run 44947029359, artifact 14724103202, older code; NOT native lease enabled",
+    "newFsyncCi": {
+      "runId": 44953715009,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44953715009",
+      "sourceCommit": "85e6e702222f1c450225faee7b0463e49fc908e5",
+      "rustUnitTests": 82,
+      "nativeLeaseAndFsyncTests": 4,
+      "tlsIntegrationTests": 8,
+      "rustJobStatus": "success",
+      "flutterJobStatus": "success",
+      "androidArm64": "in_progress at checkpoint"
+    },
+    "fastTestsWorkflow": ".github/workflows/pro-fast-tests.yml",
+    "fastTestRun": {
+      "runId": 44954233385,
+      "url": "https://github.com/alwansan/localsend-pro/actions/runs/44954233385",
+      "sourceCommit": "75eff1600002cf1375ee896de34e8c454afa5b14",
+      "latestFlutterAuthTests": "in progress at checkpoint",
+      "rustChecks": "in progress at checkpoint"
+    },
+    "latestDiagnosticQueuedRunId": 44954233387
   },
   "next": [
-    "Verify Android ARM64 job 136993506186 and artifact of run 44952326531; Rust 92 and Flutter 44 + analyze already SUCCESS",
-    "Verify older run 44951142687 ARM64 result and artifact separately (it contains only in-isolate store guard, not native lease)",
-    "Ensure native writer lease really excludes competing Dart isolates and is released after process restart on Android devices",
-    "Add authenticated receiver session/offset query and bounded chunk stream endpoints with durable acknowledgement; no credentials in discovery",
-    "Add native fsync of parent directory after checkpoint rename and atomic final file publication, with corruption/fault injection tests",
-    "Bind Rust TCP sockets to approved Android Network and verify TLS peer certificate before any transfer route switch",
-    "Two-device benchmarks over LAN 2.4/5GHz and consented hotspot, dropout/restart tests, multi-GB validation"
+    "Check independent test-only workflow run 44954233385: six new receiver auth tests + existing Flutter; fix any analyze/test failures, confirm Rust fsync tests",
+    "Check complete ARM64 diagnostic build on latest source da0b601f or workflow run 44954233387 and obtain artifact SHA; no claims until success",
+    "Integrate authenticated Rust HTTP receiver endpoint for accepted Pro session with per-file secret header and verified TLS client certificate; no token in URI/discovery",
+    "Ensure directory fsync on Android works in device environment; test forced process death, crash at rename boundary and safe reopen",
+    "Implement receiver chunk-offset GET and bounded upload + durable ACK over pinned TLS, returning receiver-verified offsets only",
+    "Implement atomically verified final file publication into user destination and prevent checkpoint replays after publish",
+    "Bind Rust outbound sockets to approved Android Network with certificate revalidation, preserve LocalSend v2 fallback, test 2 Android phones over LAN/hotspot"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
@@ -230,10 +266,17 @@
     "Confirmed native lease Rust job 136993136484 SUCCESS: 2 native file-description flock tests, 82 core tests, 8 TLS integration; total 92 passed in run 44952326531.",
     "Confirmed Flutter job 136993136854 SUCCESS: 44 Pro tests passed, dart analyze No issues found in run 44952326531.",
     "Android ARM64 native-lease job 136993506186 in progress at checkpoint; no claim of newest APK build/artifact yet.",
-    "Confirmed previous diagnostic ARM64 run 44951142687 SUCCESS; artifact 14725669490 (93,847,409 compressed bytes) from e89cbc4, before native lease."
+    "Confirmed previous diagnostic ARM64 run 44951142687 SUCCESS; artifact 14725669490 (93,847,409 compressed bytes) from e89cbc4, before native lease.",
+    "2026-11-22: run 44952326531 succeeded on source 2821e30 including ARM64 native-lock debug APK artifact 14726702057 (93,865,523 ZIP bytes). This APK predates directory fsync and receiver auth gate.",
+    "2026-11-22: native RsProFileLease.syncCheckpointDirectory after checkpoint rename implemented in 85e6e702, FRB generated fb25ea6 via successful run 44953715002. Native 4 lease/fsync tests + Rust core 82 + TLS 8 passed run 44953715009; latest APK still building.",
+    "2026-11-22: code da0b601f adds Android directory fsync call in store _publishCheckpoint before local ACK, exposes canReportVerifiedOffset only while live/idle, creates ProReceiverSessionGate with SHA256-token constant-work compare, verifies pinned TLS caller fingerprint/session/file/hash, and adds 6 tests awaiting CI.",
+    "2026-11-22: new workflow pro-fast-tests.yml commit 75eff160 runs independent Flutter and Rust tests without waiting for ARM64, run 44954233385 pending result.",
+    "Even with cancel-in-progress=false GitHub Actions replaces older PENDING runs in the same concurrency group; run 44954133853 cancelled after newer push. Avoid claiming every queued APK is preserved.",
+    "Network route and automatic resumed chunk upload are NOT wired; certificate fingerprint must be obtained from verified mTLS transport context, never from untrusted JSON.",
+    "Directory fsync is a native Unix/Android safeguard, but crash/power-loss stress tests and atomic final publication remain pending."
   ],
   "lastUpdated": "2026-11-22",
-  "latestCodeCommit": "2821e30fa471ef3406c425933e0c5450211b599f",
+  "latestCodeCommit": "da0b601f67c04a8273f203d15069ba1a2474e80f",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
@@ -280,6 +323,9 @@
     "packages/localsend_isolates/lib/rust/api/pro_file_lease.dart",
     "packages/localsend_isolates/rust/src/api/mod.rs",
     "packages/localsend_isolates/rust/Cargo.toml",
-    "Cargo.lock"
+    "Cargo.lock",
+    "app/lib/pro/pro_receiver_session_gate.dart",
+    "app/test/unit/pro/pro_receiver_session_gate_test.dart",
+    ".github/workflows/pro-fast-tests.yml"
   ]
 }

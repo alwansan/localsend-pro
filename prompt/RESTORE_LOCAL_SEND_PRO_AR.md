@@ -81,3 +81,11 @@
 ### آخر تحقق CI (2026-11-22)
 - HEAD source `2821e30` واختبارات Run `44952326531`: Rust (2 flock +82 core+8 TLS) كلها PASS، Flutter 44 PASS وDart analyzer No issues found، ARM64 job `136993506186` كان in_progress (تابع conclusion/artifacts).
 - APK أقدم مؤكد: Run `44951142687` SUCCESS، Artifact `14725669490` ZIP ~93.8MB من e89cbc4؛ لا يحتوي القفل الأصلي.
+
+## Handoff 2026-11-22 — fsync, local auth gate and fast CI
+- Repo: `alwansan/localsend-pro`, ONLY write branch `feature/android-pro-fast-transfer`, NEVER `main`. Last code source: `da0b601f67c04a8273f203d15069ba1a2474e80f`, latest workflow commit `75eff1600002cf1375ee896de34e8c454afa5b14`; docs HEAD may be newer, fetch live.
+- ARM64 native file lease APK Run `44952326531` SUCCESS; artifact `14726702057` (ZIP 93,865,523 B), source `2821e30`. Does NOT include directory fsync or local auth gate.
+- Rust native fsync API `RsProFileLease.sync_checkpoint_directory` in `85e6e702`: 4 native tests passed; Rust core 82 + 8 TLS all passed Run `44953715009` (build was active at checkpoint). Flutter Rust bridge generator Run `44953715002` SUCCESS, auto-generated commit `fb25ea6` exposes Dart syncCheckpointDirectory.
+- New `da0b601f`: `ProResumableFileStore._publishCheckpoint` invokes Android native parent-dir fsync before local ACK; failure poisons handle until reopen; `canReportVerifiedOffset` only live/idle. New `ProReceiverSessionGate` protects status/append with actual verified TLS fingerprint, accepted session, file, total SHA256, private file token SHA256 digest; 6 Dart tests written, CI result pending.
+- New fast tests-only workflow `.github/workflows/pro-fast-tests.yml` from `75eff160`, run `44954233385` launched to avoid waiting for full ARM64. Latest diagnostics `44954233387` queued; one pending Actions run per concurrency group can replace earlier pending runs despite cancel-in-progress=false.
+- NEXT: Inspect `44954233385` logs; fix Dart analyze/tests if needed; confirm newest ARM64 artifact from 44954233387 or subsequent source; implement Rust mTLS auth receiver offset status, POST chunk with bounded body and durable ACK, verified final publish, Android network socket binding. Never advertise Pro resume/hotspot flags until two-device actual tests.

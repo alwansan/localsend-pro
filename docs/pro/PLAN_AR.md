@@ -118,3 +118,11 @@
 
 - [x] نتائج `44952326531`: Rust native file lease 2/2، Rust core 82/82، TLS integration 8/8، Flutter 44/44، Dart analyzer zero issues.
 - [~] Android ARM64 job 136993506186 running; لا تختبر native lease APK من artifact الأقدم 14725669490 لأن source e89cbc4 ليس 2821e30.
+
+## P4.2 — Durable resume offset/auth local foundations (2026-11-22)
+- [x] Native lease-directory fsync after pending checkpoint rename, no ACK before fsync; native Rust tests 4/4 passed (total Rust 94) in run 44953715009.
+- [x] FRB v2.12.0 generated `syncCheckpointDirectory` via run 44953715002 SUCCESS (commit fb25ea6), integrated into Android store commit da0b601f.
+- [x] Local status gate `ProReceiverSessionGate`: verified mTLS fingerprint+session/file/hash+private token mandatory; unauthorized status null; no secrets in status. Six tests written and fast CI pending.
+- [x] Confirm prior native-lock Android debug APK artifact 14726702057 (Run 44952326531, e.g. no directory fsync).
+- [~] Fast tests run 44954233385 + latest ARM64 queued 44954233387. Check conclusions, fix failures, then checkpoint.
+- [ ] Authenticated network status/chunk endpoints, verified durable network receipts, process-death Android tests, atomic final publish, approval-based Wi-Fi direct route / native socket binding.
