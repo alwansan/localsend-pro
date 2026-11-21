@@ -13,7 +13,7 @@ import 'package:localsend_isolates/rust/frb_generated.dart';
 part 'http.freezed.dart';
 
 // These functions are ignored because they are not marked as `pub`: `resolve_file_content`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `from`, `from`
 
 /// Creates an HTTP client.
 ///
@@ -48,6 +48,12 @@ abstract class RsHttpClient implements RustOpaqueInterface {
     String? pin,
     required RsCancellationToken cancelToken,
   });
+
+  /// A read-only, strictly opt-in Pro query. The underlying Rust HTTP
+  /// client refuses requests unless it was created with an expected TLS
+  /// fingerprint and the destination protocol is HTTPS.
+  /// Legacy LocalSend (HTTP 404) returns None.
+  Future<RsProCapabilities?> proCapabilities({required ProtocolType protocol, required String ip, required int port});
 
   Future<ResultWithPublicKeyRegisterResponseDto> register({
     required ProtocolType protocol,
@@ -149,6 +155,47 @@ sealed class RsHttpClientError with _$RsHttpClientError implements FrbException 
   const factory RsHttpClientError.other(
     String field0,
   ) = RsHttpClientError_Other;
+}
+
+/// Safe, redacted view of capabilities negotiated over certificate-pinned HTTPS.
+/// Never includes a Wi-Fi password, SSID, transfer token or peer identifier.
+class RsProCapabilities {
+  final int schemaVersion;
+  final bool pinnedTlsRequired;
+  final bool resumableUpload;
+  final bool hotspotCoordination;
+  final bool networkBoundUpload;
+  final int maxChunkBytes;
+
+  const RsProCapabilities({
+    required this.schemaVersion,
+    required this.pinnedTlsRequired,
+    required this.resumableUpload,
+    required this.hotspotCoordination,
+    required this.networkBoundUpload,
+    required this.maxChunkBytes,
+  });
+
+  @override
+  int get hashCode =>
+      schemaVersion.hashCode ^
+      pinnedTlsRequired.hashCode ^
+      resumableUpload.hashCode ^
+      hotspotCoordination.hashCode ^
+      networkBoundUpload.hashCode ^
+      maxChunkBytes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RsProCapabilities &&
+          runtimeType == other.runtimeType &&
+          schemaVersion == other.schemaVersion &&
+          pinnedTlsRequired == other.pinnedTlsRequired &&
+          resumableUpload == other.resumableUpload &&
+          hotspotCoordination == other.hotspotCoordination &&
+          networkBoundUpload == other.networkBoundUpload &&
+          maxChunkBytes == other.maxChunkBytes;
 }
 
 @freezed

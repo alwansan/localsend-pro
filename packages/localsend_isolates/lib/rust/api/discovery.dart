@@ -10,7 +10,7 @@ import 'package:localsend_isolates/rust/frb_generated.dart';
 
 part 'discovery.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `merged_event`, `millis_since_epoch`, `rs_device_channel`, `rs_device_log`, `rs_stored_channel`, `rs_stored_device`, `stop`, `unconfirmed_device`
+// These functions are ignored because they are not marked as `pub`: `millis_since_epoch`, `rs_device_channel`, `rs_device_log`, `rs_stored_channel`, `rs_stored_device`, `stop`, `unconfirmed_device`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DiscoveryInstance`
 
 /// Starts the discovery: binds the UDP multicast sockets on all usable
