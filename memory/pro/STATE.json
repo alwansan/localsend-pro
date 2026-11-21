@@ -1,0 +1,59 @@
+{
+  "project": "LocalSend Pro Android Fast Transfer",
+  "repo": "alwansan/localsend-pro",
+  "baseBranch": "main",
+  "workingBranch": "feature/android-pro-fast-transfer",
+  "date": "2026-11-21",
+  "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
+  "stage": "P0",
+  "status": "in-progress",
+  "verified": {
+    "repoWrite": true,
+    "branchCreated": true,
+    "flutterVersion": "3.41.9",
+    "appVersion": "1.18.2",
+    "currentTransport": "LocalSend v2 HTTPS/HTTP/1.1; Rust",
+    "tcpNoDelayOnAccept": true,
+    "senderChecksumsDefault": false,
+    "receiverChecksumsDefault": true
+  },
+  "features": {
+    "transport": {
+      "requestedDefault": true,
+      "status": "design"
+    },
+    "directHotspot": {
+      "requestedDefault": true,
+      "status": "design"
+    },
+    "prefer5GHz": {
+      "requestedDefault": true,
+      "status": "design"
+    },
+    "resumableTransfer": {
+      "status": "not-implemented"
+    },
+    "adaptiveRecovery": {
+      "status": "not-implemented"
+    }
+  },
+  "build": {
+    "workflow": ".github/workflows/build_android_apk.yml",
+    "diagnosticBuild": "not-run",
+    "finalApk": "not-built",
+    "deviceTests": "not-run"
+  },
+  "next": [
+    "Implement capability-aware policy and unit tests",
+    "Persist independent toggles with explicit staged statuses",
+    "Add Android capability bridge with OS permissions",
+    "Design session offset resume for both endpoints",
+    "Set up dedicated diagnostics workflow and review run"
+  ],
+  "lastVerifiedBy": "GitHub connector",
+  "notes": [
+    "Never modify main",
+    "No premature final APK claims",
+    "Update restore docs and state after each work phase"
+  ]
+}
