@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:localsend_app/pro/transfer_telemetry.dart';
 import 'package:localsend_app/pro/throughput_health.dart';
+import 'package:localsend_app/pro/transfer_telemetry.dart';
 
 void main() {
   test('progress events feed a read-side monitor without resetting transfers', () {

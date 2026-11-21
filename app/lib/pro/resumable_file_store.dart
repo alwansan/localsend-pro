@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:localsend_app/pro/resumable_chunk_ledger.dart';
+import 'package:localsend_isolates/rust/api/pro_file_lease.dart';
 
 /// App-private, Android-oriented resumable receive staging.
 ///
@@ -25,12 +26,13 @@ class ProResumableFileStore {
   final ProResumeLedger ledger;
   final List<ProChunkStage> _confirmedChunks;
   final String _storeKey;
+  final RsProFileLease? _nativeLease;
 
-  // Guards multiple store handles inside the same Dart isolate, including
-  // concurrent open() calls. Dart's Unix advisory FileLock is process-scoped,
-  // NOT isolate-scoped; this is deliberately not claimed as cross-isolate
-  // exclusivity. A single receiver owner/OS-level lock is still needed before
-  // exposing this store to concurrent protocol workers.
+  // Also guards concurrent open() calls within the same Dart isolate.
+  // Android additionally requires the native file-description flock lease:
+  // it is non-blocking and excludes independent writers in OTHER isolates
+  // or processes, and its OS lock is released after an ordinary process crash.
+  // Non-Android hosts use only this in-isolate safeguard.
   static final Set<String> _activeStores = <String>{};
 
   bool _busy = false;
@@ -43,8 +45,10 @@ class ProResumableFileStore {
     required this.ledger,
     required List<ProChunkStage> confirmedChunks,
     required String storeKey,
+    required RsProFileLease? nativeLease,
   }) : _confirmedChunks = confirmedChunks,
-       _storeKey = storeKey;
+       _storeKey = storeKey,
+       _nativeLease = nativeLease;
 
   int get confirmedOffset => ledger.confirmedOffset;
   bool get isComplete => ledger.isComplete;
@@ -74,9 +78,17 @@ class ProResumableFileStore {
     if (!_activeStores.add(base)) {
       throw StateError('This Pro partial file already has an active writer in this isolate');
     }
+    RsProFileLease? nativeLease;
     try {
+      if (Platform.isAndroid) {
+        // Acquiring the lease MUST succeed before any .part or checkpoint
+        // operation. Never silently fall back to an unlocked Android writer.
+        // The .lease file remains on disk: deleting it can split inode locks.
+        nativeLease = acquireProFileLease(path: '$base.lease');
+      }
       return await _openReserved(
         base: base,
+        nativeLease: nativeLease,
         sessionId: sessionId,
         fileId: fileId,
         expectedSize: expectedSize,
@@ -85,6 +97,7 @@ class ProResumableFileStore {
         ledger: ledger,
       );
     } catch (_) {
+      nativeLease?.release();
       _activeStores.remove(base);
       rethrow;
     }
@@ -92,6 +105,7 @@ class ProResumableFileStore {
 
   static Future<ProResumableFileStore> _openReserved({
     required String base,
+    required RsProFileLease? nativeLease,
     required String sessionId,
     required String fileId,
     required int expectedSize,
@@ -214,6 +228,7 @@ class ProResumableFileStore {
       ledger: ledger,
       confirmedChunks: confirmed,
       storeKey: base,
+      nativeLease: nativeLease,
     );
   }
 
@@ -314,7 +329,11 @@ class ProResumableFileStore {
   void close() {
     if (_busy) throw StateError('Cannot close Pro file store with an operation in progress');
     _closed = true;
-    _activeStores.remove(_storeKey);
+    try {
+      _nativeLease?.release();
+    } finally {
+      _activeStores.remove(_storeKey);
+    }
   }
 
   static Future<void> _publishCheckpoint({
