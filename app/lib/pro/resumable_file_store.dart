@@ -24,6 +24,14 @@ class ProResumableFileStore {
   final File temporaryCheckpointFile;
   final ProResumeLedger ledger;
   final List<ProChunkStage> _confirmedChunks;
+  final String _storeKey;
+
+  // Guards multiple store handles inside the same Dart isolate, including
+  // concurrent open() calls. Dart's Unix advisory FileLock is process-scoped,
+  // NOT isolate-scoped; this is deliberately not claimed as cross-isolate
+  // exclusivity. A single receiver owner/OS-level lock is still needed before
+  // exposing this store to concurrent protocol workers.
+  static final Set<String> _activeStores = <String>{};
 
   bool _busy = false;
   bool _closed = false;
@@ -34,7 +42,9 @@ class ProResumableFileStore {
     required this.temporaryCheckpointFile,
     required this.ledger,
     required List<ProChunkStage> confirmedChunks,
-  }) : _confirmedChunks = confirmedChunks;
+    required String storeKey,
+  }) : _confirmedChunks = confirmedChunks,
+       _storeKey = storeKey;
 
   int get confirmedOffset => ledger.confirmedOffset;
   bool get isComplete => ledger.isComplete;
@@ -58,8 +68,37 @@ class ProResumableFileStore {
       chunkLimit: chunkLimit,
     );
     await directory.create(recursive: true);
+    final canonicalDirectory = await directory.resolveSymbolicLinks();
     final storageId = sha256.convert(utf8.encode('$sessionId\u0000$fileId')).toString();
-    final base = '${directory.path}${Platform.pathSeparator}pro_$storageId';
+    final base = '$canonicalDirectory${Platform.pathSeparator}pro_$storageId';
+    if (!_activeStores.add(base)) {
+      throw StateError('This Pro partial file already has an active writer in this isolate');
+    }
+    try {
+      return await _openReserved(
+        base: base,
+        sessionId: sessionId,
+        fileId: fileId,
+        expectedSize: expectedSize,
+        expectedSha256Hex: expectedSha256Hex,
+        chunkLimit: chunkLimit,
+        ledger: ledger,
+      );
+    } catch (_) {
+      _activeStores.remove(base);
+      rethrow;
+    }
+  }
+
+  static Future<ProResumableFileStore> _openReserved({
+    required String base,
+    required String sessionId,
+    required String fileId,
+    required int expectedSize,
+    required String expectedSha256Hex,
+    required int chunkLimit,
+    required ProResumeLedger ledger,
+  }) async {
     final part = File('$base.part');
     final checkpoint = File('$base.checkpoint.json');
     final pendingCheckpoint = File('$base.checkpoint.pending');
@@ -141,13 +180,20 @@ class ProResumableFileStore {
         }
       }
     } else {
-      // Never reuse an orphan .part as an accepted upload. It has no verified
-      // checkpoint tying it to a confirmed session and digest.
-      final file = await part.open(mode: FileMode.write);
-      try {
-        await file.flush();
-      } finally {
-        await file.close();
+      // A nonempty orphan .part is not authenticated by any checkpoint.
+      // Preserve it for investigation instead of silently truncating bytes.
+      // An empty .part from a crash during initialization can be reused.
+      if (await part.exists()) {
+        if (await part.length() != 0) {
+          throw StateError('Orphan Pro partial file without verified checkpoint');
+        }
+      } else {
+        final file = await part.open(mode: FileMode.write);
+        try {
+          await file.flush();
+        } finally {
+          await file.close();
+        }
       }
       await _publishCheckpoint(
         checkpoint: checkpoint,
@@ -167,6 +213,7 @@ class ProResumableFileStore {
       temporaryCheckpointFile: pendingCheckpoint,
       ledger: ledger,
       confirmedChunks: confirmed,
+      storeKey: base,
     );
   }
 
@@ -226,6 +273,11 @@ class ProResumableFileStore {
         return ProPersistOutcome(ProChunkVerdict.staged, receipt.confirmedOffset);
       } catch (_) {
         ledger.abandonPendingWrite();
+        // The rename may already have committed the new checkpoint even
+        // though an I/O error was observed. This handle no longer knows
+        // which state is authoritative: never retry on it. Reopen to replay
+        // and verify the committed manifest before a new local ACK.
+        _closed = true;
         rethrow;
       }
     } finally {
@@ -238,12 +290,32 @@ class ProResumableFileStore {
   /// trusted save destination after this returns true.
   Future<bool> verifyComplete() async {
     if (_closed || _busy || ledger.hasPendingWrite || confirmedOffset != ledger.expectedSize) return false;
-    if (await partFile.length() != ledger.expectedSize) return false;
-    final digest = await sha256.bind(partFile.openRead()).first;
-    return ledger.verifyFinalFile(receiverSha256Hex: digest.toString());
+    _busy = true;
+    try {
+      if (await partFile.length() != ledger.expectedSize) {
+        _closed = true;
+        return false;
+      }
+      final digest = await sha256.bind(partFile.openRead()).first;
+      final valid = ledger.verifyFinalFile(receiverSha256Hex: digest.toString());
+      if (!valid) _closed = true;
+      return valid;
+    } catch (_) {
+      _closed = true;
+      rethrow;
+    } finally {
+      _busy = false;
+    }
   }
 
-  void close() => _closed = true;
+  /// Closing while hashing or persisting is forbidden: doing so would
+  /// relinquish in-isolate ownership while an old operation is still active.
+  /// Every open() must be paired with close(), including after I/O failure.
+  void close() {
+    if (_busy) throw StateError('Cannot close Pro file store with an operation in progress');
+    _closed = true;
+    _activeStores.remove(_storeKey);
+  }
 
   static Future<void> _publishCheckpoint({
     required File checkpoint,

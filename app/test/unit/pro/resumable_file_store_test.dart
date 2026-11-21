@@ -128,6 +128,81 @@ void main() {
     await expectLater(open(), throwsStateError);
   });
 
+  test('second writer in the same isolate is rejected without touching verified bytes', () async {
+    final first = await open();
+    expect((await append(first, 0, [12, 20, 30, 40])).confirmedOffset, 4);
+    await expectLater(open(), throwsStateError);
+    expect(await first.partFile.readAsBytes(), [12, 20, 30, 40]);
+
+    first.close();
+    final resumed = await open();
+    expect(resumed.confirmedOffset, 4);
+    expect((await append(resumed, 4, [50, 60])).confirmedOffset, 6);
+    expect(await resumed.verifyComplete(), true);
+    resumed.close();
+  });
+
+  test('failed open releases in-isolate reservation for a legitimate resume', () async {
+    final first = await open();
+    await append(first, 0, [12, 20]);
+    first.close();
+    await expectLater(
+      ProResumableFileStore.open(
+        directory: directory,
+        sessionId: sessionId,
+        fileId: fileId,
+        expectedSize: payload.length,
+        expectedSha256Hex: digest([7, 8, 9]),
+        chunkLimit: 4,
+      ),
+      throwsStateError,
+    );
+    final resumed = await open();
+    expect(resumed.confirmedOffset, 2);
+    resumed.close();
+  });
+
+  test('nonempty orphan .part is preserved and is never accepted', () async {
+    final first = await open();
+    final part = first.partFile;
+    final manifest = first.checkpointFile;
+    first.close();
+    await manifest.delete();
+    await part.writeAsBytes([99, 98, 97], flush: true);
+    await expectLater(open(), throwsStateError);
+    expect(await part.readAsBytes(), [99, 98, 97]);
+    expect(await manifest.exists(), false);
+  });
+
+  test('failed checkpoint write poisons handle until replayed from disk', () async {
+    final first = await open();
+    final obstruction = Directory(first.temporaryCheckpointFile.path);
+    await obstruction.create();
+    await expectLater(append(first, 0, [12, 20, 30, 40]), throwsA(isA<FileSystemException>()));
+    expect(first.confirmedOffset, 0);
+    await expectLater(append(first, 0, [12, 20, 30, 40]), throwsStateError);
+    first.close();
+
+    await obstruction.delete();
+    final resumed = await open();
+    expect(resumed.confirmedOffset, 0);
+    expect(await resumed.partFile.length(), 0);
+    expect((await append(resumed, 0, [12, 20, 30, 40])).confirmedOffset, 4);
+    resumed.close();
+  });
+
+  test('final digest verification excludes concurrent appends and early close', () async {
+    final store = await open();
+    await append(store, 0, [12, 20, 30, 40]);
+    await append(store, 4, [50, 60]);
+    final verification = store.verifyComplete();
+    expect(() => store.close(), throwsStateError);
+    final competing = await append(store, 4, [50, 60]);
+    expect(competing.verdict, ProChunkVerdict.busy);
+    expect(await verification, true);
+    store.close();
+  });
+
   test('empty file has verified hash and remains resumable', () async {
     final store = await ProResumableFileStore.open(
       directory: directory,
