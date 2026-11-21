@@ -166,6 +166,10 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun requestProHotspot(result: MethodChannel.Result) {
+        if (pendingWifiJoin != null) {
+            result.error("PERMISSION_PENDING", "A Wi-Fi join permission request is active", null)
+            return
+        }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             result.error("UNSUPPORTED", "Android 8 or newer required", null)
             return
