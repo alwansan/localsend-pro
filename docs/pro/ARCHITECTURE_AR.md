@@ -52,3 +52,11 @@ idle → negotiating → transferring → (degraded) → probing → recovering 
 4. `ProResumeLedger` فعلاً يحدد staged vs confirmed offset، يتحقق SHA256 لكل chunk، لا يَقبل duplicate إلا إذا تطابقت metadata/hash، ولا يعلن verified قبل اكتمال الحجم وبصمة محتوى مستقبل كاملة. **المتكامل مع القرص لاحقاً يجب أن يعمل fsync+checkpoint قبل confirmDurableWrite ويزيل أي bytes غير مؤكدة عند إعادة الفتح.** لا expose API خارجي أو تحوّل إلى engine حي حتى يتوفر persistent resume negotiation.
 5. لا تبادل كلمة مرور hotspot عبر multicast أو discovered metadata، ولا اعتماد على TCP probe دون TLS pinned fingerprint. احتفظ باختبار LAN/hotspot وfallback لـLocalSend القديم.
 6. Workflow Pro يقوم بتحليل live send/progress، وAndroid debug artifact يحتوي SHA256SUMS وBUILD_INFO إذا نجح. نجاح البناء لم يتم إثباته، لذلك لا APK نهائي.
+
+## ملاحظات مخزن الاستئناف P4 — 2026-11-21
+- `ProResumableFileStore.open(directory, sessionId, fileId, expectedSize, expectedSha256Hex)`: أسماء الملفات مشتقة SHA-256 من session+file، *يجب* استعمال app-private directory؛ الاعتماد على هوية جلسة موثقة قبل استدعائها على شبكة حقيقية.
+- `append`: التحقق من hash 4MiB max وترتيب offset والهوية، الكتابة إلى .part مع flush، تجميع checkpoint متتالٍ وإغلاق temp ثم rename، وبعدها فقط confirmDurableWrite؛ أي خطأ يبقي ledger offset دون تقدم.
+- `open` بعد انقطاع البرنامج: parse نسخة checkpoint المتزامنة، تحقق كل chunk من bytes على القرص وبصمته وأعد إنشاء ledger؛ truncate tail غير موثق؛ إذا metadata/file mismatch تعطل بدلاً من فقد/تخطي bytes.
+- `verifyComplete`: stream SHA256 عبر File.openRead دون تحميل ملف كامل، ثم التحقق من الحجم والبصمة؛ لا يعمل publish نهائي؛ يحتاج atomic rename وحماية وجهة SAF.
+- حدود حالية: لا cross-process file lock، إعادة فتح مخزن متعدد الكتّاب غير معرّفة؛ Dart filesystem flush + rename لا يضمن strict power-loss durability دون fsync لدليل metadata على Android؛ لا تستخدمه على UI isolate للملفات الكبيرة.
+- اختبارات Pro نجحت 34 على Actions Run 44944767568، ولم يُثبت نجاح Android ARM64 debug build بعد.

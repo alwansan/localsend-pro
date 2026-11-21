@@ -41,3 +41,10 @@
 **تم فعلياً**: Android Wi-Fi approved-Network TCP reachability probe/latency (`ProWifiJoin.kt`, Dart)، Live sender-read progress monitor `transfer_telemetry.dart` مرتبط بـsend_provider ومظهر Advanced progress، ونواة `resumable_chunk_ledger.dart` + اختبارات hash, monotonic offset, durable ACK gating, duplicate protection. CI Pro يحلل live integration ويضيف SHA256SUMS/BUILD_INFO للـdebug APK.
 **لم يتم**: التشغيل المؤكد لاختبارات Flutter أو Kotlin/Android CI؛ من الأدوات الحالية لا يمكن توثيق نجاح Action push، ولا APK نهائي؛ لا socket binding لـRust، ولا authenticated capability/credential handshake، ولا persistent checkpoint ولا endpoint/restore للجهازين. لا تدّع أن البروتوكول الجديد شغّال للنقل النهائي.
 **التالي**: تحقق من Actions وحل أي build faults، ثم handshake مثبت TLS قبل credentials، ربط Rust transport بالشبكة المختارة فقط، نقل chunks للقرص عبر verified checkpoint/offset مع hash، مراقبة تدهور مع تعافٍ آمن، benchmark هاتفين 2.4/5GHz LAN وHotspot.
+
+## تحديث Continue — P4 وGitHub Actions المؤكد، 2026-11-21
+- فرع الكتابة **feature/android-pro-fast-transfer** فقط. آخر commit كود: `00006b079fbea776007555d85d86d8c59285f86a`. تحقق من HEAD الحالي قبل الكتابة، وحدث STATE بعد كل إنجاز.
+- جديد: `resumable_file_store.dart` + tests؛ استعادة مكوّن offline لأجزاء الملفات بعد إعادة تشغيل التطبيق، manifest + .part وverified replay، رفض الفساد والـtail غير المؤكد. **لا يحتوي endpoints ولا يُوصل بمحرك Rust**، ولا يدّعي كمال recovery عند انقطاع طاقة مفاجئ؛ متبقٍ fsync dir/locking وremote ACK.
+- **نجح** Pro policy CI في https://github.com/alwansan/localsend-pro/actions/runs/44944767568: Dart analyze و**34 اختبار Flutter ناجح**، job 136969617732. كان Android ARM64 diagnostic job 136969942311 في_progress عند التسجيل؛ ارجع لنتيجته وlogs/artifacts. لا APK نهائي.
+- تحذير: cancel-in-progress=true يلغي التشغيل السابق عند نشر commits كثيرة. حافظ على تشغيل البناء؛ استخدم `[skip ci]` للوثائق ما دام ARM64 job جاري، وبعده أصلح الحاجة إلى cancels المتكررة.
+- التالي: أكمل result/build، ثم handshake موثّق TLS، Rust network-specific bind وreceiver offset/chunk protocol/ACK واستئناف كامل، تجارب هاتفين مع ملفات ضخمة.

@@ -5,8 +5,8 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-21",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P1 live sender diagnostics / P3 consent-bound network probe / P4 resumable chunk ledger: partial, no transfer switch",
-  "status": "code-published-tests-and-build-not-verified",
+  "stage": "P4 offline disk checkpoint recovery implemented, 34 Pro tests passed; live protocol wiring pending",
+  "status": "tested-offline-component-android-build-in-progress",
   "verified": {
     "repoWrite": true,
     "branchCreated": true,
@@ -61,29 +61,38 @@
       "secureRecovery": false,
       "chunkHashAndDurableOffsetLedgerImplemented": true,
       "testCasesWritten": true,
-      "diskCheckpointAndFileWriterImplemented": false
+      "diskCheckpointAndFileWriterImplemented": true,
+      "persistedCheckpointRecoveryImplemented": true,
+      "privatePartialFileAndManifestImplemented": true,
+      "checkpointCorruptionFailsClosed": true,
+      "osPowerLossDurabilityVerified": false,
+      "liveEndpointAndAuthenticatedResume": false
     }
   },
   "build": {
     "workflow": ".github/workflows/pro-android-diagnostics.yml",
     "configured": true,
-    "pushTriggeredRunVerified": false,
-    "unitTests": "written-not-run (transfer_telemetry, resumable_chunk_ledger, wifi_join and route policy)",
-    "diagnosticApk": "not-verified",
+    "pushTriggeredRunVerified": true,
+    "unitTests": "34 passed on GitHub Actions run 44944767568",
+    "diagnosticApk": "in progress; not verified",
     "finalApk": "not-built",
     "phoneToPhoneTests": "not-run",
     "workflowEnhancedForLiveIntegrationAnalysis": true,
-    "workflowArtifactChecksumConfigured": true
+    "workflowArtifactChecksumConfigured": true,
+    "dartAnalyze": "success on run 44944767568",
+    "proTestRunUrl": "https://github.com/alwansan/localsend-pro/actions/runs/44944767568",
+    "proTestJobId": 136969617732,
+    "androidArm64JobId": 136969942311,
+    "androidArm64JobStatusAtCheckpoint": "in_progress"
   },
   "next": [
-    "Verify latest GitHub Actions status and fix any Dart analyzer, Kotlin or Rust build errors; no success confirmed",
-    "Implement authenticated opt-in peer capabilities negotiation that cannot downgrade TLS identity",
-    "Securely transport consented hotspot configuration over pinned TLS only, never public discovery or logs",
-    "Bind only selected Rust HTTP transport sockets to Android approved Network and verify fingerprint and route",
-    "Provide durable partial-file and checkpoint persistence, source/receiver SHA-256 validation, offset query and resume endpoint",
-    "Connect recovery state machine to receiver-confirmed offsets; keep existing LocalSend v2 fallback",
-    "Run real Android handset tests for 2.4/5GHz LAN and direct link with large files and thermal throttling",
-    "Release final ARM64 APK only after full acceptance"
+    "Get final conclusion, logs and ARM64 artifact for run 44944767568 without cancelling it with a normal push",
+    "Add per-directory or cross-isolate exclusive file locking before wiring offline store into concurrent live transfer",
+    "Design authenticated capability negotiation and peer-bound session, avoid public discovery credentials",
+    "Add receiver offset/query API + sender chunk transfer on pinned TLS; wire isolated durable receiver store off the UI isolate",
+    "Implement Android approved Network socket binding for Rust HTTP connection, secure peer TLS verification before route switch",
+    "Add power-loss durability (native fsync of checkpoint directory) and verified atomic publish into destination",
+    "End-to-end Android test two devices WiFi 2.4/5 GHz router and LocalOnlyHotspot, large files, timeout/fallback"
   ],
   "lastVerifiedBy": "GitHub connector",
   "notes": [
@@ -100,10 +109,16 @@
     "TCP reachability through approved Network is NOT TLS peer authentication and does not switch Rust HTTP transport.",
     "Throughput health measures Rust file read progress, not durable receiver acknowledgement, so never auto restart on this signal alone.",
     "In-memory ProResumeLedger enforces sender chunk hash, monotonic durable ACK, duplicates and full hash; disk persistence/network endpoints not yet implemented.",
-    "CI upload includes checksum and commit metadata on success, but Actions status cannot be verified with available connector."
+    "CI upload includes checksum and commit metadata on success, but Actions status cannot be verified with available connector.",
+    "Confirmed CI run 44944767568 pro-unit job 136969617732 SUCCESS, Dart analyze and 34 Flutter unit tests passed.",
+    "Android ARM64 diagnostic job 136969942311 in_progress at this checkpoint; do not claim APK build success.",
+    "Most earlier push-triggered Actions runs were cancelled due to concurrency cancel-in-progress=true and frequent commits.",
+    "New ProResumableFileStore is offline only, writes .part and flushed checkpoint manifest with atomic same-dir rename and verifies every saved chunk on reopen; rejects unconfirmed bytes/corruption.",
+    "File-mode storage is not bound to the live Rust transfer engine and strict power-loss durability needs fsync of containing directory.",
+    "2026-11-21 code commit 00006b079fbea776007555d85d86d8c59285f86a."
   ],
   "lastUpdated": "2026-11-21",
-  "latestCodeCommit": "a17f09faac518c0ea9d11c5bf2295a64141ec33e",
+  "latestCodeCommit": "00006b079fbea776007555d85d86d8c59285f86a",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
@@ -126,6 +141,8 @@
     "app/lib/pro/resumable_chunk_ledger.dart",
     "app/test/unit/pro/resumable_chunk_ledger_test.dart",
     "app/lib/provider/network/send_provider.dart",
-    "app/lib/pages/progress_page.dart"
+    "app/lib/pages/progress_page.dart",
+    "app/lib/pro/resumable_file_store.dart",
+    "app/test/unit/pro/resumable_file_store_test.dart"
   ]
 }

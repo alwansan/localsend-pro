@@ -79,3 +79,12 @@
 - [ ] كتابة فعليّة آمنة لملف جزئي وcheckpoint durable وعملية استئناف تلقائية مع endpoint لـoffset.
 - [ ] قياس receiver ACK وsocket/network telemetry وbenchmark هاتفين؛ لا تفسر Sender read-progress على أنه completed transfer.
 - [ ] إثبات نتائج CI/Android build؛ test files مكتوبة فقط وغير منفذة.
+
+## تحديث 2026-11-21 — P4 store وCI مثبت
+- [x] ProResumableFileStore مستقل: .part وcheckpoint manifest، flush، rename، replay والتحقق SHA لكل chunk، تجاهل trailing speculative bytes، رفض corruption/mismatched identity، لا إعادة إرسال bytes مؤكدة دون موافقة المستقبل.
+- [x] اختبار مكونات Pro في CI `44944767568`: Dart analyzer ناجح و34 اختباراً ناجحاً.
+- [~] ARM64 debug diagnostic build ضمن نفس Run — قيد التشغيل عند حفظ الحالة، لا APK نهائي.
+- [ ] مسار بروتوكول فعلي بين المستقبل والمرسل (authenticated receiver offset, file token, chunk hashes, idempotent ack, TLS fingerprint).
+- [ ] ضمانات strict power-loss fsync + concurrent file lock + safe final rename.
+- [ ] تلقائي 5GHz/Hotspot مع Android Network-specific Rust binding + consent, ثم اختبار فعلي على هاتفين.
+- [ ] جعل CI لا يلغي تشغيل البناء بسبب commits خاصة بالوثائق؛ استعمل [skip ci] مؤقتاً.
