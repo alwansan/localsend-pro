@@ -56,3 +56,8 @@
 - Rust CI run `44946132259` فشل formatter بسبب formatting debt ضمن legacy files؛ commit `8cee4d8` حلله بتعديل تنسيق الملفين المتأثرين وقصر Rustfmt، وبدأ run جديد `44946218918`. كان fmt ناجحاً وRust tests قيد التنفيذ عند تحديث الذاكرة؛ راجع conclusion والـlogs بدقة قبل المتابعة.
 - **المتبقي**: FRB exposing capability, secured peer handshake, hotspot consent & Network-specific Rust sockets, persistent chunk API/ACK، Android two-phone benchmark and full safe recovery. لا APK نهائي بعد.
 - منع بناءات متلاحقة: رسائل الوثائق `[skip ci]` حتى انتهاء Workflow الأحدث؛ لا تخمن نجاح CI.
+
+## تدقيق CI الجديد — 2026-11-21
+- 82 Rust tests PASSED وRustfmt PASSED في Run 44946218918 (job 136974049811). Flutter pro-unit PASSED أيضاً (job 136974049953). Android ARM64 job 136974325851 قيد البناء عند آخر فحص.
+- بناء Debug قديم ناجح: Run 44944767568، artifact 14723396847 من commit 00006b0؛ Rust Pro endpoint جديد من commit 8cee4d8 لا تدخل ضمن ذلك APK القديم.
+- ممنوع إيقاف أحدث CI بcommits عادية؛ التوثيق/الذاكرة فقط [skip ci].

@@ -59,3 +59,8 @@ https://play.google.com/store/apps/details?id=com.sharekaro.app
 - ✅ GitHub Actions Run 44944767568 `SUCCESS` على Source commit 00006b0: Dart analyzer و34 test Flutter، وبناء Android ARM64 Debug وArtifact 14723396847 باسم `LocalSend-Pro-Android-arm64-DIAGNOSTIC`، ZIP size 93,785,397 bytes، ينتهي 2026-12-05. هذا APK تشخيصي سابق لإضافة Rust negotiation، **ليس النهائي**.
 - 🔄 Run 44946218918 لكود Rust الجديد: fmt نجح وRust test كان يشتغل عند الحفظ؛ راقب وتحقق. لا تضف commits عادية تلغيه؛ تحديث الوثائق [skip ci].
 - المتبقي: Flutter/FRB integration للتفاوض، hotspot pairing آمن، Rust per-socket Network binding، chunk uploader+checkpoint/ACK end-to-end وAndroid two-phone tests.
+
+## حالة CI المؤكدة — تكملة 2026-11-21
+- Run 44946218918: `pro-rust` job 136974049811 **نجح**: Rustfmt المخصص + `cargo test -p localsend --features http --lib` = **82 tests passed, 0 failed**. من ضمنها `http::pro::tests` و`http::server::pro::tests` و`http::client::v2::pro_tests`.
+- `pro-unit` job 136974049953 **نجح** (Flutter analyzer/tests). ARM64 job 136974325851 ظل قيد التشغيل عند تسجيل هذه المعلومة.
+- احفظ آخر مصدر كود 8cee4d8 وdocs HEAD الفعلي؛ لا تخلط build الأقدم الناجح 44944767568 بمصدر Rust الجديد. لا تعلن APK النهائي.

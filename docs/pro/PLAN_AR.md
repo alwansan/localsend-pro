@@ -96,3 +96,6 @@
 - [~] Run 44946218918 للشيفرة الجديدة ongoing؛ تأكد من Rust tests وAndroid build، وراجع النتائج قبل وصف أي Feature بأنه شغال.
 - [ ] FRB وتجارب capability discovery بين هاتفين مع TLS pinned identity وفشل آمن، ثم consent/network socket-specific binding.
 - [ ] Chunk resume protocol persistent ACK، واختبار إعادة الإرسال بعد توقف التطبيق والشبكة؛ آلية النقل الحالية لا تستخدم هذا المسار حتى الآن.
+
+- [x] CI الأحدث 44946218918 Rustfmt scoped + Rust HTTP core **82/82 passed**، وكذلك Flutter Pro unit job نجح.
+- [~] ARM64 job 136974325851 من نفس التشغيل لم يكن قد انتهى عند توثيق النتيجة؛ تأكد منه قبل اختبار APK على الهاتف.

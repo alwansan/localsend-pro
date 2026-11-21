@@ -5,7 +5,7 @@
   "workingBranch": "feature/android-pro-fast-transfer",
   "date": "2026-11-21",
   "baselineHead": "26cc8f997aa3f7ad789c12500a8b7206cfbb3ddc",
-  "stage": "P2 authenticated Pro capabilities endpoint in Rust published; P4 offline checkpoint tested; Android diagnostic build succeeded",
+  "stage": "P2 Rust mTLS capabilities tested (82/82); P4 offline resume store tested (34 Flutter); Android ARM64 newest build pending",
   "status": "partial-tested-design; experimental live handshake and transfer not yet wired",
   "verified": {
     "repoWrite": true,
@@ -93,7 +93,7 @@
     "phoneToPhoneTests": "not-run",
     "workflowEnhancedForLiveIntegrationAnalysis": true,
     "workflowArtifactChecksumConfigured": true,
-    "dartAnalyze": "success on run 44944767568",
+    "dartAnalyze": "success in run 44946218918",
     "proTestRunUrl": "https://github.com/alwansan/localsend-pro/actions/runs/44944767568",
     "proTestJobId": 136969617732,
     "androidArm64JobId": 136969942311,
@@ -115,12 +115,17 @@
       "runId": 44946218918,
       "url": "https://github.com/alwansan/localsend-pro/actions/runs/44946218918",
       "headCommit": "8cee4d8802e02525362bfaf5d3b1b816b4b332a1",
-      "rustfmt": "passed (Rust tests running when checked)",
-      "rustTests": "in progress",
-      "androidArm64": "pending"
+      "rustfmt": "success",
+      "rustTests": "82 passed, 0 failed, 0 ignored, 0 filtered",
+      "androidArm64": "in progress at last check",
+      "flutterTests": "success (Pro policy tests job)",
+      "rustJobId": 136974049811,
+      "flutterJobId": 136974049953,
+      "androidJobId": 136974325851
     },
     "workflowRustTestsConfigured": true,
-    "rustFormattingFailureFromBaselineHandled": true
+    "rustFormattingFailureFromBaselineHandled": true,
+    "rustTests": "82 passing in run 44946218918"
   },
   "next": [
     "Verify Rust core tests and Android ARM64 result of run 44946218918; fix exact errors if failed",
@@ -156,7 +161,9 @@
     "New Rust endpoint GET /api/localsend/pro/v1/capabilities is read-only mTLS-client-cert gated, with a pinned HTTPS-only Rust client query; 404 legacy fallback. Not yet used by Flutter, transfer engine still LocalSend v2.",
     "Pro capability DTO v1 advertises resumableUpload=false, hotspotCoordination=false and networkBoundUpload=false; no hotspot secrets exposed.",
     "Rust CI first run 44946132259 failed rustfmt only because of repository-wide baseline formatting debt; code fixes 8cee4d plus scoped check. New run 44946218918 is ongoing.",
-    "Do not cancel current newest CI run via frequent push; document updates use [skip ci]."
+    "Do not cancel current newest CI run via frequent push; document updates use [skip ci].",
+    "Confirmed Rust HTTP core 82 tests passed, 0 failed, 0 ignored in job 136974049811 on run 44946218918.",
+    "Confirmed Pro Flutter policy job 136974049953 succeeded on new Rust commit 8cee4d8; latest Android diagnostic build still in progress."
   ],
   "lastUpdated": "2026-11-21",
   "latestCodeCommit": "8cee4d8802e02525362bfaf5d3b1b816b4b332a1",
