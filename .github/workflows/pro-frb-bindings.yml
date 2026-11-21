@@ -1,0 +1,67 @@
+name: LocalSend Pro Flutter Rust Bridge bindings
+
+on:
+  push:
+    branches:
+      - feature/android-pro-fast-transfer
+    paths:
+      - packages/localsend_isolates/rust/src/api/http.rs
+      - .github/workflows/pro-frb-bindings.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: localsend-pro-frb-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Generate and publish pinned Pro FRB bindings
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.9"
+          channel: stable
+          cache: true
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+      - name: Resolve Flutter workspace
+        run: flutter pub get
+        working-directory: app
+      - name: Install matching flutter_rust_bridge generator
+        run: cargo +1.97.1 install --locked flutter_rust_bridge_codegen --version 2.12.0
+      - name: Generate native and Dart bindings
+        working-directory: packages/localsend_isolates
+        run: flutter_rust_bridge_codegen generate
+      - name: Verify generator output without changing legacy code
+        run: |
+          git diff --check
+          changed="$(git diff --name-only)"
+          printf '%s\n' "$changed"
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            case "$path" in
+              packages/localsend_isolates/lib/rust/*|packages/localsend_isolates/rust/src/frb_generated.rs) ;;
+              *) echo "::error::Generator unexpectedly changed $path"; exit 1 ;;
+            esac
+          done <<EOF
+          $changed
+          EOF
+      - name: Publish generated bindings to the same feature branch
+        run: |
+          git add packages/localsend_isolates/lib/rust packages/localsend_isolates/rust/src/frb_generated.rs
+          if git diff --cached --quiet; then
+            echo "Generated bindings already up to date"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build(pro): regenerate Flutter Rust Bridge bindings'
+          git push origin HEAD:refs/heads/feature/android-pro-fast-transfer
