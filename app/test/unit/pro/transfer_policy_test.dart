@@ -101,7 +101,7 @@ void main() {
       receiver: receiver,
       context: const ProRouteContext(lanReachable: false, lanHealthy: false, hotspotAllowed: false, peerAssociationAvailable: true),
     );
-    expect(plan.route, ProRoute.existingLan);
+    expect(plan.route, ProRoute.unavailable);
     expect(plan.requiresConsent, false);
   });
 
@@ -112,6 +112,6 @@ void main() {
       receiver: receiver,
       context: const ProRouteContext(lanReachable: false, lanHealthy: false, hotspotAllowed: true, peerAssociationAvailable: true),
     );
-    expect(plan.route, ProRoute.existingLan);
+    expect(plan.route, ProRoute.unavailable);
   });
 }
