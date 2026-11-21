@@ -37,6 +37,19 @@ jobs:
         working-directory: app
         run: flutter test test/unit/pro
 
+  pro-rust:
+    name: Pro Rust transport checks
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Rust compiler with rustfmt
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal --component rustfmt
+      - name: Verify Rust formatting
+        run: cargo +1.97.1 fmt --all -- --check
+      - name: Test Rust HTTP core including Pro capabilities
+        run: cargo +1.97.1 test -p localsend --features http --lib
+
   android-arm64-debug:
     name: Android ARM64 diagnostic APK (not final)
     needs: pro-unit
