@@ -72,10 +72,11 @@
   "notes": [
     "Never modify main",
     "No premature final APK claims",
-    "Update restore docs and state after each work phase"
+    "Update restore docs and state after each work phase",
+    "Added tests for existing 2.4GHz LAN and receiver-hosted hotspot; tests are written but not yet executed."
   ],
   "lastUpdated": "2026-11-21",
-  "latestCodeCommit": "6ad7e67a3da08e2bde396b86cdbd5bb7ba4dd759",
+  "latestCodeCommit": "d248fb402465ec937ea2dec813eff393620692a6",
   "implementedPaths": [
     "app/lib/pro/transfer_policy.dart",
     "app/lib/pro/pro_preferences.dart",
