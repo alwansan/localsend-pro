@@ -3318,6 +3318,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "flutter_rust_bridge",
+ "libc",
  "localsend",
  "tokio",
  "tokio-util",
