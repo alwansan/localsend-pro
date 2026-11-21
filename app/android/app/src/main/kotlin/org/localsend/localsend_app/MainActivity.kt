@@ -32,6 +32,7 @@ private const val REQUEST_CODE_PICK_DIRECTORY_PATH = 2
 private const val REQUEST_CODE_PICK_FILE = 3
 private const val REQUEST_CODE_LOCAL_NETWORK = 4
 private const val REQUEST_CODE_PRO_HOTSPOT = 5
+private const val REQUEST_CODE_PRO_WIFI_JOIN = 6
 
 // Not available as a constant in compileSdk 36.
 private const val PERMISSION_ACCESS_LOCAL_NETWORK = "android.permission.ACCESS_LOCAL_NETWORK"
@@ -42,6 +43,9 @@ class MainActivity : FlutterActivity() {
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingProHotspotResult: MethodChannel.Result? = null
     private val proHotspot = ProLocalOnlyHotspot()
+    private val proWifiJoin = ProWifiJoin()
+    private data class PendingWifiJoin(val ssid: String, val passphrase: String, val result: MethodChannel.Result)
+    private var pendingWifiJoin: PendingWifiJoin? = null
 
     /// share_handler drops share intents arriving via onNewIntent while the Dart side
     /// is not subscribed to its media stream yet, which happens when this singleTask
@@ -91,6 +95,12 @@ class MainActivity : FlutterActivity() {
                 "startProLocalOnlyHotspot" -> requestProHotspot(result)
                 "stopProLocalOnlyHotspot" -> {
                     proHotspot.stop()
+                    result.success(null)
+                }
+                "joinProLocalOnlyWifi" -> requestProWifiJoin(call, result)
+                "getProWifiJoinStatus" -> result.success(proWifiJoin.status())
+                "leaveProLocalOnlyWifi" -> {
+                    proWifiJoin.leave()
                     result.success(null)
                 }
                 "pickDirectory" -> {
@@ -177,6 +187,38 @@ class MainActivity : FlutterActivity() {
         requestPermissions(arrayOf(permission), REQUEST_CODE_PRO_HOTSPOT)
     }
 
+    /**
+     * Request runtime consent first; WifiNetworkSpecifier itself also shows
+     * Android's network approval UI. Neither request changes process routing.
+     */
+    private fun requestProWifiJoin(call: MethodCall, result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            result.error("UNSUPPORTED", "Android 10 or newer required for local Wi-Fi requests", null)
+            return
+        }
+        val ssid = call.argument<String>("ssid")
+        val passphrase = call.argument<String>("passphrase")
+        if (ssid.isNullOrBlank() || ssid.toByteArray(Charsets.UTF_8).size > 32 || passphrase == null || passphrase.length !in 8..63) {
+            result.error("INVALID_CREDENTIALS", "Invalid hotspot credentials", null)
+            return
+        }
+        if (pendingWifiJoin != null || pendingProHotspotResult != null) {
+            result.error("PERMISSION_PENDING", "Another Wi-Fi permission request is already open", null)
+            return
+        }
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.NEARBY_WIFI_DEVICES
+        } else {
+            Manifest.permission.ACCESS_FINE_LOCATION
+        }
+        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+            proWifiJoin.join(this, ssid, passphrase, result)
+        } else {
+            pendingWifiJoin = PendingWifiJoin(ssid, passphrase, result)
+            requestPermissions(arrayOf(permission), REQUEST_CODE_PRO_WIFI_JOIN)
+        }
+    }
+
     /// Android 17+ gates local network access behind a runtime permission; older versions grant it implicitly.
     private fun hasLocalNetworkPermission(): Boolean {
         if (Build.VERSION.SDK_INT < API_LEVEL_ANDROID_17) {
@@ -190,6 +232,16 @@ class MainActivity : FlutterActivity() {
         if (requestCode == REQUEST_CODE_LOCAL_NETWORK) {
             pendingPermissionResult?.success(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
             pendingPermissionResult = null
+        } else if (requestCode == REQUEST_CODE_PRO_WIFI_JOIN) {
+            val pending = pendingWifiJoin
+            pendingWifiJoin = null
+            if (pending != null) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    proWifiJoin.join(this, pending.ssid, pending.passphrase, pending.result)
+                } else {
+                    pending.result.error("PERMISSION_DENIED", "Nearby Wi-Fi permission is required", null)
+                }
+            }
         } else if (requestCode == REQUEST_CODE_PRO_HOTSPOT) {
             val receiver = pendingProHotspotResult
             pendingProHotspotResult = null
@@ -204,6 +256,9 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        proWifiJoin.leave()
+        pendingWifiJoin?.result?.error("CANCELLED", "Activity closed during Wi-Fi approval", null)
+        pendingWifiJoin = null
         proHotspot.stop()
         pendingProHotspotResult?.error("CANCELLED", "Activity closed during permission prompt", null)
         pendingProHotspotResult = null
