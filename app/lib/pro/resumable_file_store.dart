@@ -53,6 +53,10 @@ class ProResumableFileStore {
   int get confirmedOffset => ledger.confirmedOffset;
   bool get isComplete => ledger.isComplete;
 
+  /// A status query can report only verified checkpoints from a live handle,
+  /// never an offset while a disk write or full-file hash is in flight.
+  bool get canReportVerifiedOffset => !_closed && !_busy && !ledger.hasPendingWrite;
+
   /// Call with an APP-PRIVATE directory, never a public downloads folder.
   /// A restart with mismatched session/file/hash or corrupted checkpoint fails
   /// closed, preserving both files for investigation rather than trusting bytes.
@@ -218,6 +222,7 @@ class ProResumableFileStore {
         expectedSha256Hex: expectedSha256Hex,
         chunkLimit: chunkLimit,
         chunks: confirmed,
+        nativeLease: nativeLease,
       );
     }
 
@@ -281,6 +286,7 @@ class ProResumableFileStore {
           expectedSha256Hex: ledger.expectedSha256Hex,
           chunkLimit: ledger.chunkLimit,
           chunks: candidate,
+          nativeLease: _nativeLease,
         );
         // Only advance after both the file and checkpoint have been flushed.
         final receipt = ledger.confirmDurableWrite(stage);
@@ -345,6 +351,7 @@ class ProResumableFileStore {
     required String expectedSha256Hex,
     required int chunkLimit,
     required List<ProChunkStage> chunks,
+    required RsProFileLease? nativeLease,
   }) async {
     final raw = jsonEncode({
       'schema': 1,
@@ -367,6 +374,13 @@ class ProResumableFileStore {
     // Same-directory rename is atomic on Android's supported Linux filesystems.
     // Native directory fsync must be added before claiming power-loss durability.
     await pending.rename(checkpoint.path);
+    // Android only: do not ACK a renamed checkpoint without fsync of its
+    // containing directory. On failure append() poisons the store handle;
+    // the next open must replay/reverify disk before issuing any receipt.
+    if (Platform.isAndroid) {
+      if (nativeLease == null) throw StateError('Android Pro directory sync needs an active native writer lease');
+      nativeLease.syncCheckpointDirectory();
+    }
   }
 }
 
