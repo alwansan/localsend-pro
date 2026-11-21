@@ -1,0 +1,58 @@
+name: LocalSend Pro fast checks (no APK)
+
+on:
+  push:
+    branches:
+      - feature/android-pro-fast-transfer
+    paths:
+      - app/lib/pro/**
+      - app/test/unit/pro/**
+      - app/lib/pages/device_details_page.dart
+      - app/lib/provider/network/send_provider.dart
+      - packages/core/src/http/pro.rs
+      - packages/core/src/http/server/pro.rs
+      - packages/localsend_isolates/rust/src/api/pro_file_lease.rs
+      - .github/workflows/pro-fast-tests.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: localsend-pro-fast-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutter:
+    name: Flutter Pro local resume and auth tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.9"
+          channel: stable
+          cache: true
+      - name: Resolve Flutter workspace
+        working-directory: app
+        run: flutter pub get
+      - name: Analyze Pro Dart and transfer integration
+        working-directory: app
+        run: dart analyze lib/pro test/unit/pro lib/provider/network/send_provider.dart lib/pages/progress_page.dart lib/pages/device_details_page.dart
+      - name: Run all Pro Flutter unit tests
+        working-directory: app
+        run: flutter test test/unit/pro
+
+  rust:
+    name: Rust Pro lease, fsync, and TLS checks
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Rust compiler
+        run: rustup toolchain install 1.97.1 --profile minimal
+      - name: Native lease and directory fsync tests
+        run: cargo +1.97.1 test -p rust_lib_localsend_app --lib pro_file_lease
+      - name: Rust HTTP library tests
+        run: cargo +1.97.1 test -p localsend --features http --lib
+      - name: Real TLS integration tests
+        run: cargo +1.97.1 test -p localsend --features http --test v2_tls_pinning
